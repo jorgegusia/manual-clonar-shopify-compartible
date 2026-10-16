@@ -1,0 +1,14 @@
+{
+  products {
+    edges {
+      node {
+        id handle title status vendor productType tags templateSuffix descriptionHtml
+        seo { title description }
+        options { name values }
+        metafields { edges { node { namespace key type value } } }
+        media { edges { node { mediaContentType alt preview { image { url } } } } }
+        variants { edges { node { id title sku barcode price compareAtPrice taxable inventoryPolicy inventoryQuantity selectedOptions { name value } inventoryItem { tracked requiresShipping measurement { weight { unit value } } } } } }
+      }
+    }
+  }
+}

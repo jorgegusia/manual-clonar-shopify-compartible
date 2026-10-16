@@ -1,0 +1,4 @@
+{
+  pages(first: 250) { nodes { id handle title body isPublished templateSuffix } }
+  menus(first: 50) { nodes { id handle title items { title type url resourceId tags items { title type url resourceId tags items { title type url resourceId tags } } } } }
+}
