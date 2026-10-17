@@ -1,0 +1,275 @@
+# Manual modo B: crear una tienda de EBOOKS copiando el ESTILO de una tienda sin acceso
+
+Para cuando **no** hay acceso al admin de la tienda que se quiere copiar (eso es el modo A, el README principal).
+El modo B **siempre** arma una tienda de **productos digitales (ebooks)** cuyo tema sale del **rubro de la LLC**
+del usuario, con el estilo de una tienda de referencia (o el estilo por defecto) e imágenes generadas con Higgsfield.
+
+Archivos de esta carpeta:
+| Archivo | Para qué |
+|---|---|
+| `ficha-llc-ebooks.md` | Datos que hay que pedirle al usuario (LLC, rubro, tienda, estilo) |
+| `ejemplo-marca.json` | Molde de `marca.json`: todos los datos y textos de la tienda en un solo archivo (ejemplo ficticio) |
+| `estilo-referencia.md` | Estilo por defecto "Paper Studio" (análisis de la referencia) |
+| `prompts-imagenes.md` | Prompts de Higgsfield para portadas, hero y logo |
+| `plantillas/tema/sections/eb-*.liquid` | Secciones del tema que recrean el estilo (header, home, producto, footer) |
+| `plantillas/politicas/*.html` | Las 5 políticas en inglés con marcadores `{{LLC}}`, `{{ADDRESS}}`... |
+
+Scripts (en `scripts/` de la skill o del repo del manual, correr con `python3 -I`): `analizar_referencia.py`, `armar_productos.py`,
+`armar_tema.py`, `generar_politicas.py`, más los del modo A que se reutilizan (`edit_theme_json.py`,
+`upload_videos.py ... IMAGE`, `capturar-link-auth.sh`).
+
+---
+
+## 0. Reglas (además de las del modo A §0)
+
+1. **Siempre ebooks o productos digitales.** Nunca productos físicos en modo B.
+2. **El tema de los ebooks sale del rubro de la LLC.** Así la tienda es coherente con lo que la LLC declara
+   (Shopify Payments, Stripe y los bancos lo revisan). Si el rubro es muy amplio, proponer 3 nichos y que elija.
+3. **Copiar el diseño, no el contenido.** De la referencia se toma estructura, proporciones, paleta, tipografías
+   y tipo de imagen. Textos, imágenes, nombre, logo y LLC son **propios**. Nunca dejar datos de la LLC de la
+   referencia (el análisis los muestra en "Footer: NO copiar").
+4. **Todo lo que ve el cliente, en inglés.** Al usuario se le habla en español.
+5. **Prometer solo lo concreto.** Nada de "may cover", "proposed", cantidad de páginas o resultados inventados.
+   Disclaimer educativo en todos los productos.
+6. **Todo por CLI** (`shopify store execute` / `bulk execute` / `theme ...`), igual que el modo A. Higgsfield es la única
+   herramienta externa (conector MCP).
+7. **Nunca tocar el tema publicado:** se trabaja sobre un duplicado. Publicar, quitar la contraseña y borrar cosas,
+   solo con OK explícito.
+8. **Carpeta del cliente:** `clientes/<tienda>/` con `FICHA.md`, `datos/marca.json`, `referencia/`, `tema/`,
+   `politicas/`, `imagenes/` (URLs y elecciones).
+
+---
+
+## 1. Ficha y datos (antes de tocar nada)
+
+1. Crear `clientes/<tienda>/`, copiar `ficha-llc-ebooks.md` como `FICHA.md` y pedir en **un solo mensaje** lo que falte:
+   LLC (nombre legal, estado, dirección, email, teléfono, horario, **rubro**), `.myshopify.com`, nombre comercial,
+   código de descuento, referencia (opcional).
+2. Confirmar dudas de escritura (ej. "Digita" vs "Digital"). Si no hay teléfono: `xxx xx xxx` y avisar.
+   **Nunca inventar un teléfono real.**
+3. Con el rubro, proponer **3 nichos de ebooks** (1 línea cada uno) y 3 nombres comerciales si no tiene. Esperar que elija.
+4. Copiar `ejemplo-marca.json` a `clientes/<tienda>/datos/marca.json` y completarlo a medida que avanza.
+
+---
+
+## 2. Analizar la referencia (sin acceso)
+
+Si el usuario no pasa referencia, usar el **estilo por defecto** (`estilo-referencia.md`) y saltar a §3.
+
+```bash
+python3 -I scripts/analizar_referencia.py https://TIENDA-REFERENCIA clientes/<tienda>/referencia
+```
+- Saca de lo **público**: tema base (`Shopify.theme`), secciones de cada página en orden, títulos, colores y
+  tipografías más usados, productos de `/products.json` (precios, tipo, tamaño de imagen) y el texto del footer.
+- Si responde 401 o redirige a `/password`, la tienda tiene contraseña: pedir capturas. Si da 0/409/"Error 1001",
+  el dominio no apunta a ninguna tienda: pedir la `.myshopify.com`.
+- **Capturas** con el navegador (home arriba, biblioteca, banda y footer, ficha de producto; en compu y celular)
+  para comparar al final. Colores exactos: `getComputedStyle` en el navegador si el análisis no alcanza.
+- Resumirle al usuario en 5–8 líneas qué se toma (estructura, paleta, tipografías, tipo de imágenes) y
+  **qué no** (textos, LLC, imágenes).
+- Si la referencia tiene secciones que nuestras plantillas no tienen, agregarlas a `eb-home.liquid` con el mismo
+  patrón (CSS con prefijo propio, variables `--eb-*`, settings editables) y pasar `theme check`.
+
+---
+
+## 3. Tienda de destino: acceso y mercados
+
+### 3.1 Acceso (igual que modo A §4)
+```bash
+shopify auth logout && shopify theme list --store DESTINO.myshopify.com
+```
+```bash
+shopify store auth --store DESTINO.myshopify.com --scopes read_products,write_products,read_files,write_files,read_content,write_content,read_online_store_pages,write_online_store_pages,read_online_store_navigation,write_online_store_navigation,read_publications,write_publications,read_themes,write_themes,read_legal_policies,write_legal_policies,read_discounts,write_discounts,read_markets,write_markets,read_locales,write_locales,read_translations,write_translations,read_inventory,write_inventory
+```
+- Todos los permisos de una vez (incluidos **mercados y políticas**). Login en una pestaña de Terminal visible,
+  pasarle link y código al usuario, de a una autorización.
+- Confirmar el dominio con `shop { name myshopifyDomain currencyCode }` antes de crear nada.
+
+### 3.2 Mercados UK (GBP) y USA (USD), mismo número en las dos monedas
+1. Leer: `shop { currencyCode enabledPresentmentCurrencies billingAddress { countryCodeV2 } }` y `markets(first:20){ nodes { id name status } }`.
+2. Crear "United Kingdom" y "United States" (si ya existen, `marketUpdate`):
+   ```graphql
+   mutation($input: MarketCreateInput!){ marketCreate(input:$input){ market{ id name } userErrors{ field message code } } }
+   ```
+   ```json
+   {"input":{"name":"United Kingdom","status":"ACTIVE","conditions":{"regionsCondition":{"regions":[{"countryCode":"GB"}]}},
+     "currencySettings":{"baseCurrency":"GBP","baseCurrencyManualRate":"1.0","localCurrencies":false,"roundingEnabled":false}}}
+   ```
+   (USA igual con `US` y `USD`). Si la versión de la API pide otros campos, mirar el error y el esquema de `MarketCreateInput`.
+3. Pasar los demás mercados a `DRAFT` (después de crear UK y US: no se puede apagar el último).
+4. Verificar con `contextualPricing(context:{country:GB})` y `US` que 19.99 sea £19.99 y $19.99.
+
+**Si falla con `MULTIPLE_CURRENCIES_NOT_SUPPORTED`:** la tienda no tiene Shopify Payments como pasarela.
+No reintentar con variantes. Pedirle al usuario: Configuración → Pagos → activar Shopify Payments (completa él
+los datos de la LLC; Claude nunca carga datos financieros) y moneda de la tienda en USD. Seguir con el resto y
+volver al final. **Plan B** (solo si no puede activar Shopify Payments), explicarle antes la diferencia de ingresos:
+UK en su propio mercado en USD y 12 ebooks extra visibles solo en UK, 2 por cada precio ("baja" ≈ ×1.30 y "alza" ≈ ×1.36):
+
+| Precio base | UK baja | UK alza |
+|---|---|---|
+| 19.99 | 25.99 | 26.99 |
+| 29.99 | 38.99 | 40.99 |
+| 49.99 | 64.99 | 67.99 |
+| 69.99 | 90.99 | 94.99 |
+| 99.99 | 129.99 | 135.99 |
+| 199.00 | 259.00 | 269.00 |
+
+Visibilidad: `catalogCreate` (contexto mercado USA) → `publicationCreate` (catalogId, `defaultState: EMPTY`,
+`autoPublish: false`) → publicar ahí SOLO los 6 base. UK sin catálogo ve los 18. Verificar con `publishedInContext`.
+
+---
+
+## 4. Contenido: nicho, productos y textos
+
+**Receta fija (no preguntar):**
+| # | Nivel | Precio | Nota |
+|---|---|---|---|
+| 01 | Fundamentos (entrada) | **19.99** | el más simple |
+| 02 | Tema puntual | **29.99** | |
+| 03 | Tema puntual | **49.99** | |
+| 04 | Tema puntual | **69.99** | |
+| 05 | Guía avanzada / completa | **99.99** | integra varios temas |
+| 06 | **Colección completa** | **199.00** | reúne los 5; tags `bestseller` y `top`; portada = set de 3 libros |
+
+- El precio sigue la profundidad del contenido (como en la referencia), de 19.99 a 199. Si el usuario pide otra
+  escalera, cambiarla en `marca.json`; `armar_productos.py` solo exige 6 precios distintos entre 19 y 199 y que el top sea el más caro.
+- **Descripción** (inglés): párrafo de qué es y para quién → `<h3>What's inside</h3>` con 4–6 viñetas
+  "**Tema:** explicación" → `<h3>Format</h3>` (PDF, entrega instantánea por email, cualquier dispositivo) →
+  disclaimer educativo ("...not a substitute for professional advice. No specific results are guaranteed.") →
+  "*Digital product only. No physical item is shipped.*"
+- `resumen`: 1 línea corta para la tarjeta de la home.
+- Textos de la home (`home` en marca.json): kicker, H1 de 6–9 palabras, intro de 1–2 frases, banda de cierre, 3–6 FAQ.
+- Mostrarle al usuario la tabla de títulos y precios antes de generar imágenes.
+
+---
+
+## 5. Imágenes con Higgsfield
+
+Seguir `prompts-imagenes.md`: 6 portadas 1:1 (tanda 1), hero 3:2 + 2 logos (tanda 2). Máximo 6 por tanda.
+Revisar que el texto esté bien escrito. Guardar las URLs elegidas en `clientes/<tienda>/imagenes/urls.json`
+y las de portadas en `datos/portadas.json` (`{handle: url}`).
+
+Hero y logo a Files:
+```graphql
+mutation($files:[FileCreateInput!]!){ fileCreate(files:$files){ files{ id fileStatus alt } userErrors{ field message } } }
+```
+```json
+{"files":[{"originalSource":"https://...hero.png","contentType":"IMAGE","filename":"<slug>-hero.png","alt":"<Tienda> hero"},
+          {"originalSource":"https://...logo.png","contentType":"IMAGE","filename":"<slug>-logo.png","alt":"<Tienda> logo"}]}
+```
+Esperar `READY` y poner en `marca.json` → `imagenes.logo` = `shopify://shop_images/<slug>-logo.png` y `imagenes.hero` igual.
+
+---
+
+## 6. Productos y descuento
+
+```bash
+python3 -I scripts/armar_productos.py clientes/<tienda>/datos/marca.json clientes/<tienda>/datos/productset.jsonl --portadas clientes/<tienda>/datos/portadas.json
+```
+Frena si algo no cumple la receta (6 productos, precios, top, disclaimer, frases prohibidas, portadas). Después:
+```bash
+shopify store bulk execute -s DESTINO --allow-mutations --variable-file clientes/<tienda>/datos/productset.jsonl --watch --output-file clientes/<tienda>/datos/productset-result.jsonl -q 'mutation($input: ProductSetInput!){ productSet(input:$input){ product{ id handle } userErrors{ field message code } } }'
+```
+- Publicar los 6 en **Online Store** (`publishablePublish` con el ID de esa publicación: buscarlo en `publications`).
+- Cada variante queda con `requiresShipping: false` (si no, el checkout pide dirección).
+- **Descuento:** código de la ficha, 15 %, todos los clientes, desde ahora, sin fecha de fin:
+  `discountCodeBasicCreate` con `customerGets.items.all: true`, `customerGets.value.percentage: 0.15`,
+  `context.all: ALL` (o `customerSelection.all: true` según la versión), `startsAt` = ahora.
+
+---
+
+## 7. Tema
+
+1. Ver el tema publicado: `shopify theme list --store DESTINO < /dev/null`.
+   - Si es **Horizon** (las tiendas nuevas lo traen): duplicarlo
+     `shopify theme duplicate --store DESTINO --theme <ID_MAIN> --name "<Tienda>" --force --json < /dev/null`.
+   - Si es otro tema: bajar Horizon de `https://github.com/Shopify/horizon` y subirlo con
+     `theme push --unpublished --theme "<Tienda>"` (manual A §5.1). Las plantillas `eb-*` funcionan en cualquier tema
+     Online Store 2.0, pero están probadas con Horizon.
+2. Bajar el duplicado: `shopify theme pull --store DESTINO --theme <ID_NUEVO> --path clientes/<tienda>/tema < /dev/null`.
+3. Armar los archivos:
+   ```bash
+   python3 -I scripts/armar_tema.py clientes/<tienda>/datos/marca.json clientes/<tienda>/tema
+   ```
+   Copia `sections/eb-*.liquid` y escribe `templates/index.json`, `templates/product.json`,
+   `sections/header-group.json` y `sections/footer-group.json` (header con barra "15% OFF ... code X" y
+   "Instant digital delivery", paleta y logo; footer con la LLC).
+4. Validar: `shopify theme check --path clientes/<tienda>/tema` → los archivos `eb-*` y los 4 JSON sin errores.
+5. Subir **en este orden** (si no, "la sección no existe"):
+   ```bash
+   shopify theme push --store DESTINO --theme <ID_NUEVO> --path clientes/<tienda>/tema --only sections/eb-header.liquid --only sections/eb-home.liquid --only sections/eb-product.liquid --only sections/eb-footer.liquid --json < /dev/null
+   ```
+   ```bash
+   shopify theme push --store DESTINO --theme <ID_NUEVO> --path clientes/<tienda>/tema --only sections/header-group.json --only sections/footer-group.json --only templates/index.json --only templates/product.json --json < /dev/null
+   ```
+6. Favicon: ícono del logo recortado en cuadrado → `config/settings_data.json` `current.favicon` con `edit_theme_json.py`.
+
+---
+
+## 8. Todo en inglés, menús y páginas
+
+- Menú `main-menu`: Home (`/`) / Our Ebooks (`/collections/all`) / Contact (`/pages/contact`) con `menuUpdate`
+  (conservar los IDs de los ítems que ya existan). Menú `footer`: vacío o "Search" (las políticas ya salen solas).
+- Página Contact: título "Contact" y el formulario del tema (template `page.contact`).
+- Si el idioma principal de la tienda no es inglés: `shopLocaleEnable(locale:"en")` y publicarlo; **el usuario**
+  pone el inglés como predeterminado en Configuración → Idiomas (el banner de cookies, checkout y emails dependen de eso).
+  Mientras tanto, copiar `locales/en.default.json` a `locales/es.json` en el tema duplicado hace que los textos del
+  tema salgan en inglés.
+
+---
+
+## 9. Políticas (con los datos de la LLC)
+
+```bash
+python3 -I scripts/generar_politicas.py clientes/<tienda>/datos/marca.json clientes/<tienda>/politicas
+```
+Cargar cada una (5 veces, una por archivo `*.vars.json`):
+```bash
+shopify store execute -s DESTINO --allow-mutations --variable-file clientes/<tienda>/politicas/REFUND_POLICY.vars.json -q 'mutation($shopPolicy: ShopPolicyInput!){ shopPolicyUpdate(shopPolicy:$shopPolicy){ shopPolicy{ type url } userErrors{ field message } } }' < /dev/null
+```
+- La de privacidad falla si está en "gestión automática": el usuario la desactiva en Configuración → Políticas.
+- Si `shopPolicyUpdate` no tiene permiso, mandarle al usuario `politicas-para-copiar.html` (botón "Copy" en cada una)
+  para pegarlas en Configuración → Políticas.
+- El footer lista solo las políticas cargadas (`shop.policies`).
+- Recomendar que un abogado las revise antes de lanzar anuncios.
+
+---
+
+## 10. Verificación (obligatoria)
+
+Por API:
+- 6 productos ACTIVE, con imagen, `requiresShipping: false`, publicados en Online Store.
+- Precios: `contextualPricing` GB y US → tabla Producto | UK | USA con el mismo número.
+- Logo y hero `READY`; políticas cargadas; descuento activo; menús en inglés.
+
+En el navegador (`https://DESTINO/?preview_theme_id=<ID_NUEVO>`; si hay contraseña, pedirla al usuario o verificar por API):
+- Capturas home, ficha y carrito en compu y celular, **al lado de las de la referencia**. Corregir hasta que el diseño coincida.
+- Revisar con JavaScript que cada link del header y footer dé 200, que no haya palabras en español ni datos de la
+  LLC de la referencia, y que aparezcan la LLC y el teléfono propios.
+- Cerrar las pestañas abiertas.
+
+---
+
+## 11. Entrega (en español, corta)
+
+- Tabla de productos con precio en £ y $, cuál es el top, estado de los mercados y el código de descuento.
+- Link de la vista previa del tema.
+- Pendientes del usuario: Shopify Payments + moneda USD (si hizo falta), inglés como idioma predeterminado,
+  nombre de la tienda, **PDF de cada ebook con Shopify Digital Downloads**, revisar políticas, y OK para
+  publicar el tema y quitar la contraseña (`shopify theme publish --theme ID --force`, manual A §8).
+- Actualizar `FICHA.md` y los dos repos del manual con lo aprendido (§12).
+
+---
+
+## 12. Errores conocidos y aprendizajes
+
+| Problema | Causa | Solución |
+|---|---|---|
+| `MULTIPLE_CURRENCIES_NOT_SUPPORTED` | Sin Shopify Payments | Ver §3.2 (no reintentar variantes) |
+| Higgsfield 429 | Más de 6 imágenes por tanda | Tandas de 6 y esperar |
+| Texto mal escrito en portada o logo | El modelo inventa letras | Revisar con zoom y regenerar solo esa |
+| "Section does not exist" al subir `index.json` | Se subió el JSON antes que la sección | Subir primero `sections/eb-*.liquid` |
+| "Página 404" en el editor del tema | Falta la página o política | Crearla (§8–9) |
+| El checkout pide dirección | Variante con envío | `requiresShipping: false` (lo pone `armar_productos.py`) |
+| Referencia con "Error 1001" | El dominio no apunta a Shopify | Pedir la `.myshopify.com` |
+| Logo oscuro en el footer bordó | PNG con fondo | Quitar fondo (Higgsfield) o desactivar "Show logo in light color" |

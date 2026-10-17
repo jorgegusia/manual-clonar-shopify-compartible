@@ -1,0 +1,69 @@
+{%- comment -%}
+  Modo B (ebooks): ficha de producto. Imagen a la izquierda; volver, título, precio,
+  botón ancho de "Add to cart", nota de entrega digital y descripción a la derecha.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign hid = 'eb-product-' | append: section.id
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+<style>
+  #{{ hid }} { background: var(--eb-paper); color: var(--eb-ink); font-family: var(--eb-serif); }
+  #{{ hid }} * { box-sizing: border-box; }
+  #{{ hid }} .ep-wrap { max-width: 1240px; margin: auto; padding: 80px 6vw 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; align-items: start; }
+  #{{ hid }} .ep-media img { display: block; width: 100%; height: auto; }
+  #{{ hid }} .ep-back { font: 14px var(--eb-sans); color: var(--eb-ink); text-decoration: none; }
+  #{{ hid }} h1 { font-size: clamp(36px, 4vw, 56px); line-height: 1.05; letter-spacing: -.03em; margin: 18px 0 20px; font-weight: 600; }
+  #{{ hid }} .ep-price { font: 700 22px var(--eb-sans); display: flex; gap: 12px; align-items: baseline; }
+  #{{ hid }} .ep-price s { font-weight: 400; font-size: 16px; color: var(--eb-muted); }
+  #{{ hid }} .ep-badge { display: inline-block; margin-bottom: 6px; background: var(--eb-accent); color: var(--eb-paper); font: 700 11px/1 var(--eb-sans); letter-spacing: .1em; text-transform: uppercase; padding: 8px 10px; }
+  #{{ hid }} .ep-form { margin: 24px 0 10px; }
+  #{{ hid }} .ep-form button { width: 100%; border: 0; border-radius: 999px; padding: 18px 24px; background: var(--eb-accent); color: var(--eb-paper); font: 700 15px var(--eb-sans); cursor: pointer; }
+  #{{ hid }} .ep-form button[disabled] { opacity: .5; cursor: not-allowed; }
+  #{{ hid }} .ep-note { font: 13px/1.6 var(--eb-sans); color: var(--eb-muted); margin: 0 0 30px; }
+  #{{ hid }} .ep-description { font-size: 16px; line-height: 1.7; }
+  #{{ hid }} .ep-description h2, #{{ hid }} .ep-description h3 { font: 700 24px/1.2 var(--eb-sans); margin: 28px 0 12px; }
+  #{{ hid }} .ep-description li { margin-bottom: 6px; }
+  @media (max-width: 900px) { #{{ hid }} .ep-wrap { grid-template-columns: 1fr; padding: 40px 20px 70px; } }
+</style>
+
+<section id="{{ hid }}">
+  <div class="ep-wrap">
+    <div class="ep-media">
+      {%- if product.featured_image -%}
+        {{ product.featured_image | image_url: width: 1400 | image_tag: alt: product.title, loading: 'eager', sizes: '(max-width: 900px) 100vw, 50vw' }}
+      {%- endif -%}
+    </div>
+    <div class="ep-info">
+      <a class="ep-back" href="{{ s.back_link | default: routes.all_products_collection_url }}">← {{ s.back_label }}</a>
+      <h1>{{ product.title }}</h1>
+      {%- if product.tags contains 'top' and s.top_badge != blank -%}<span class="ep-badge">{{ s.top_badge }}</span>{%- endif -%}
+      <div class="ep-price">
+        <span>{{ current_variant.price | money }}</span>
+        {%- if current_variant.compare_at_price > current_variant.price -%}<s>{{ current_variant.compare_at_price | money }}</s>{%- endif -%}
+      </div>
+      {%- form 'product', product, class: 'ep-form' -%}
+        <input type="hidden" name="id" value="{{ current_variant.id }}">
+        <button type="submit" name="add" {% unless current_variant.available %}disabled{% endunless %}>
+          {%- if current_variant.available -%}{{ s.button_label }}{%- else -%}{{ s.sold_out_label }}{%- endif -%}
+        </button>
+      {%- endform -%}
+      {%- if s.note != blank -%}<p class="ep-note">{{ s.note }}</p>{%- endif -%}
+      <div class="ep-description">{{ product.description }}</div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "EB Product",
+  "settings": [
+    { "type": "text", "id": "back_label", "label": "Back link label", "default": "Our Ebooks" },
+    { "type": "url", "id": "back_link", "label": "Back link" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Add to cart" },
+    { "type": "text", "id": "sold_out_label", "label": "Sold out label", "default": "Sold out" },
+    { "type": "text", "id": "top_badge", "label": "Badge for products tagged 'top'", "default": "Bestseller · Most complete" },
+    { "type": "text", "id": "note", "label": "Note under the button", "default": "Instant digital delivery by email · PDF · Read on any device" }
+  ]
+}
+{% endschema %}

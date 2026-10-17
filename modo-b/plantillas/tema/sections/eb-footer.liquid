@@ -1,0 +1,110 @@
+{%- comment -%}
+  Modo B (ebooks): footer con datos de la LLC, newsletter y links a las políticas.
+  Va en sections/footer-group.json. Fondo = color de acento, texto = color papel.
+  Las políticas salen de shop.policies (Configuración → Políticas o shopPolicyUpdate).
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign hid = 'eb-footer-' | append: section.id
+-%}
+<style>
+  #{{ hid }} { background: var(--eb-accent); color: var(--eb-paper); font-family: var(--eb-sans); }
+  #{{ hid }} * { box-sizing: border-box; }
+  #{{ hid }} a, #{{ hid }} p, #{{ hid }} h2, #{{ hid }} h3, #{{ hid }} span { color: var(--eb-paper); }
+  #{{ hid }} .ef-wrap { max-width: 1440px; margin: auto; padding: 80px 6vw 30px; }
+  #{{ hid }} .ef-top { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; }
+  #{{ hid }} .ef-logo img { display: block; width: min({{ s.logo_width }}px, 60vw); height: auto; {% if s.logo_invert %}filter: brightness(0) invert(1);{% endif %} }
+  #{{ hid }} .ef-logo-text { font: 600 30px/1 var(--eb-serif); }
+  #{{ hid }} .ef-legal { margin-top: 26px; font-size: 13px; line-height: 1.7; }
+  #{{ hid }} .ef-legal h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 10px; }
+  #{{ hid }} .ef-legal p { margin: 0 0 10px; }
+  #{{ hid }} .ef-legal a { text-decoration: none; }
+  #{{ hid }} .ef-news h3 { font-size: 20px; margin: 0 0 8px; }
+  #{{ hid }} .ef-news p { font-size: 13px; max-width: 360px; margin: 0 0 22px; }
+  #{{ hid }} .ef-field { display: flex; align-items: center; background: var(--eb-paper); border-radius: 999px; padding: 6px 6px 6px 20px; max-width: 520px; }
+  #{{ hid }} .ef-field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--eb-ink); font: 14px var(--eb-sans); outline: none; }
+  #{{ hid }} .ef-field input::placeholder { color: var(--eb-ink); opacity: .65; }
+  #{{ hid }} .ef-field button { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--eb-accent); color: var(--eb-paper); font-size: 18px; cursor: pointer; }
+  #{{ hid }} .ef-ok { font-size: 13px; margin-top: 10px; }
+  #{{ hid }} .ef-links { margin-top: 50px; }
+  #{{ hid }} .ef-links h2 { font-size: 26px; margin: 0 0 18px; font-weight: 700; }
+  #{{ hid }} .ef-links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; font-size: 13px; }
+  #{{ hid }} .ef-links a { text-decoration: none; }
+  #{{ hid }} .ef-links a:hover { text-decoration: underline; }
+  #{{ hid }} .ef-bottom { margin-top: 50px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--eb-paper) 25%, transparent); font-size: 11px; }
+  @media (max-width: 760px) { #{{ hid }} .ef-top { grid-template-columns: 1fr; gap: 40px; } #{{ hid }} .ef-wrap { padding: 56px 20px 24px; } }
+</style>
+
+<footer id="{{ hid }}">
+  <div class="ef-wrap">
+    <div class="ef-top">
+      <div>
+        <div class="ef-logo">
+          {%- if s.logo != blank -%}
+            {{ s.logo | image_url: width: 600 | image_tag: alt: shop.name, loading: 'lazy' }}
+          {%- else -%}
+            <span class="ef-logo-text">{{ shop.name }}</span>
+          {%- endif -%}
+        </div>
+        <div class="ef-legal">
+          {%- if s.llc_name != blank -%}<h3>{{ s.llc_name }}</h3>{%- endif -%}
+          {%- if s.llc_address != blank -%}<p>{{ s.address_label }}: {{ s.llc_address }}</p>{%- endif -%}
+          <p>
+            {%- if s.email != blank -%}Email: <a href="mailto:{{ s.email }}">{{ s.email }}</a><br>{%- endif -%}
+            {%- if s.phone != blank -%}Phone: <a href="tel:{{ s.phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' }}">{{ s.phone }}</a>{%- endif -%}
+          </p>
+        </div>
+      </div>
+      <div class="ef-news">
+        <h3>{{ s.news_title }}</h3>
+        {%- if s.news_text != blank -%}<p>{{ s.news_text }}</p>{%- endif -%}
+        {%- form 'customer', id: 'EbFooterNewsletter' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <div class="ef-field">
+            <input type="email" name="contact[email]" placeholder="{{ s.news_placeholder }}" aria-label="{{ s.news_placeholder }}" required autocomplete="email">
+            <button type="submit" aria-label="Subscribe">→</button>
+          </div>
+          {%- if form.posted_successfully? -%}<p class="ef-ok">{{ s.news_success }}</p>{%- endif -%}
+        {%- endform -%}
+      </div>
+    </div>
+    <div class="ef-links">
+      <h2>{{ s.links_title }}</h2>
+      <ul>
+        <li><a href="{{ routes.search_url }}">Search</a></li>
+        {%- for policy in shop.policies -%}
+          <li><a href="{{ policy.url }}">{{ policy.title }}</a></li>
+        {%- endfor -%}
+        {%- for link in linklists[s.extra_menu].links -%}
+          <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+        {%- endfor -%}
+      </ul>
+    </div>
+    <div class="ef-bottom">© {{ 'now' | date: '%Y' }} {{ s.llc_name | default: shop.name }}. All rights reserved.</div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "EB Footer",
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 120, "max": 320, "step": 10, "unit": "px", "default": 220 },
+    { "type": "checkbox", "id": "logo_invert", "label": "Show logo in light color (needs transparent PNG)", "default": true },
+    { "type": "header", "content": "Company (LLC)" },
+    { "type": "text", "id": "llc_name", "label": "Legal name" },
+    { "type": "text", "id": "address_label", "label": "Address label", "default": "Registered address" },
+    { "type": "text", "id": "llc_address", "label": "Address" },
+    { "type": "text", "id": "email", "label": "Support email" },
+    { "type": "text", "id": "phone", "label": "Phone" },
+    { "type": "header", "content": "Newsletter" },
+    { "type": "text", "id": "news_title", "label": "Title", "default": "Join our email list" },
+    { "type": "text", "id": "news_text", "label": "Text", "default": "Get ebook news and updates about our latest resources." },
+    { "type": "text", "id": "news_placeholder", "label": "Placeholder", "default": "Email address" },
+    { "type": "text", "id": "news_success", "label": "Success message", "default": "Thanks for subscribing!" },
+    { "type": "header", "content": "Links" },
+    { "type": "text", "id": "links_title", "label": "Title", "default": "Links" },
+    { "type": "link_list", "id": "extra_menu", "label": "Extra menu (optional)" }
+  ]
+}
+{% endschema %}

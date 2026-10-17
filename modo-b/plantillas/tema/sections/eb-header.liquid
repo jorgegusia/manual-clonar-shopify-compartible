@@ -1,0 +1,123 @@
+{%- comment -%}
+  Modo B (ebooks): header + barra de anuncios + estilos globales de la tienda.
+  Va en sections/header-group.json, así carga en TODAS las páginas: por eso acá viven
+  los colores y tipografías (variables --eb-*) que usan eb-home, eb-product y eb-footer,
+  y los ajustes para que las páginas propias del tema (carrito, colección, contacto,
+  políticas) tomen el mismo fondo y botones.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign hid = 'eb-header-' | append: section.id
+-%}
+<style>
+  :root {
+    --eb-paper: {{ s.color_paper }};
+    --eb-ink: {{ s.color_ink }};
+    --eb-accent: {{ s.color_accent }};
+    --eb-muted: {{ s.color_muted }};
+    --eb-serif: {{ s.font_serif }};
+    --eb-sans: {{ s.font_sans }};
+  }
+  html body, html body main { background: var(--eb-paper) !important; color: var(--eb-ink); }
+  html body h1, html body h2, html body h3, html body p, html body a { overflow-wrap: anywhere; }
+  html body main h1, html body main h2, html body .shopify-policy__title h1 { font-family: var(--eb-serif); }
+  html body .shopify-policy__container, html body .shopify-policy__body,
+  html body .shopify-policy__body h2, html body .shopify-policy__body h3,
+  html body .shopify-policy__body a { color: var(--eb-ink) !important; }
+  html body main .button:not(.button-secondary), html body main button[type='submit'],
+  html body main input[type='submit'], html body main .cart__checkout-button {
+    background: var(--eb-accent) !important; color: var(--eb-paper) !important; border-color: var(--eb-accent) !important;
+  }
+  html body main input:not([type='submit']):not([type='checkbox']), html body main textarea, html body main select {
+    background: var(--eb-paper) !important; color: var(--eb-ink) !important; border-color: var(--eb-ink) !important;
+  }
+
+  #{{ hid }} { background: var(--eb-paper); border-bottom: 1px solid color-mix(in srgb, var(--eb-accent) 35%, transparent); position: relative; z-index: 20; font-family: var(--eb-serif); }
+  #{{ hid }} * { box-sizing: border-box; }
+  #{{ hid }} .ehd-bar { background: var(--eb-accent); color: var(--eb-paper); font: 700 12px/1.4 var(--eb-sans); letter-spacing: .08em; text-transform: uppercase; text-align: center; padding: 10px 16px; display: flex; justify-content: center; gap: 10px 28px; flex-wrap: wrap; }
+  #{{ hid }} .ehd-bar a { color: inherit; text-decoration: none; }
+  #{{ hid }} .ehd-wrap { max-width: 1440px; margin: 0 auto; padding: 14px 6vw; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+  #{{ hid }} .ehd-brand { display: flex; align-items: center; text-decoration: none; color: var(--eb-ink); min-width: 0; }
+  #{{ hid }} .ehd-brand img { display: block; width: min({{ s.logo_width }}px, 42vw); height: auto; max-height: 58px; object-fit: contain; object-position: left center; }
+  #{{ hid }} .ehd-brand-text { font: 600 26px/1 var(--eb-serif); letter-spacing: -.02em; }
+  #{{ hid }} .ehd-actions { display: flex; align-items: center; gap: 22px; }
+  #{{ hid }} nav { display: flex; align-items: center; gap: 30px; }
+  #{{ hid }} nav a { color: var(--eb-ink); text-decoration: none; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  #{{ hid }} nav a:hover, #{{ hid }} nav a[aria-current] { text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--eb-accent); }
+  #{{ hid }} .ehd-cart { position: relative; }
+  #{{ hid }} .ehd-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 4px; border-radius: 999px; background: var(--eb-accent); color: var(--eb-paper); font: 700 11px/1 var(--eb-sans); }
+  #{{ hid }} .ehd-market form { margin: 0; }
+  #{{ hid }} .ehd-market select { appearance: none; -webkit-appearance: none; min-width: 120px; background: var(--eb-paper); border: 2px solid var(--eb-ink); border-radius: 999px; color: var(--eb-ink); font: 800 13px/1 var(--eb-sans); padding: 10px 34px 10px 14px; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--eb-ink) 50%), linear-gradient(135deg, var(--eb-ink) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+  @media (max-width: 760px) {
+    #{{ hid }} .ehd-wrap { flex-direction: column; align-items: stretch; padding: 12px 16px; gap: 12px; }
+    #{{ hid }} .ehd-brand img { width: 150px; }
+    #{{ hid }} .ehd-actions { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    #{{ hid }} nav { gap: 10px 14px; flex-wrap: wrap; }
+    #{{ hid }} nav a { font-size: 13px; }
+    #{{ hid }} .ehd-market select { min-width: 104px; font-size: 12px; padding: 8px 30px 8px 12px; }
+  }
+</style>
+
+<header id="{{ hid }}">
+  {%- if s.announcement_1 != blank or s.announcement_2 != blank -%}
+    <div class="ehd-bar" role="region" aria-label="Announcements">
+      {%- if s.announcement_1 != blank -%}<span>{{ s.announcement_1 }}</span>{%- endif -%}
+      {%- if s.announcement_2 != blank -%}<span>{{ s.announcement_2 }}</span>{%- endif -%}
+    </div>
+  {%- endif -%}
+  <div class="ehd-wrap">
+    <a class="ehd-brand" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+      {%- if s.logo != blank -%}
+        {{ s.logo | image_url: width: 600 | image_tag: alt: shop.name, loading: 'eager' }}
+      {%- else -%}
+        <span class="ehd-brand-text">{{ shop.name }}</span>
+      {%- endif -%}
+    </a>
+    <div class="ehd-actions">
+      <nav aria-label="Main">
+        {%- for link in linklists[s.menu].links -%}
+          <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
+        {%- endfor -%}
+        <a class="ehd-cart" href="{{ routes.cart_url }}">{{ s.cart_label }}{%- if cart.item_count > 0 -%}<span class="ehd-count">{{ cart.item_count }}</span>{%- endif -%}</a>
+      </nav>
+      {%- if s.show_market and localization.available_countries.size > 1 -%}
+        <div class="ehd-market">
+          {%- form 'localization', id: 'EbHeaderLocalization' -%}
+            <select name="country_code" aria-label="Country" onchange="this.form.submit()">
+              {%- for country in localization.available_countries -%}
+                <option value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} selected{% endif %}>{{ country.iso_code }} · {{ country.currency.iso_code }}</option>
+              {%- endfor -%}
+            </select>
+          {%- endform -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "EB Header",
+  "class": "eb-header-section",
+  "settings": [
+    { "type": "header", "content": "Brand" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 120, "max": 320, "step": 10, "unit": "px", "default": 230 },
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
+    { "type": "text", "id": "cart_label", "label": "Cart label", "default": "Cart" },
+    { "type": "checkbox", "id": "show_market", "label": "Show country / currency selector", "default": true },
+    { "type": "header", "content": "Announcement bar" },
+    { "type": "text", "id": "announcement_1", "label": "Announcement 1" },
+    { "type": "text", "id": "announcement_2", "label": "Announcement 2" },
+    { "type": "header", "content": "Store palette (used by all EB sections)" },
+    { "type": "color", "id": "color_paper", "label": "Paper (background)", "default": "#F4EDEC" },
+    { "type": "color", "id": "color_ink", "label": "Ink (text)", "default": "#171717" },
+    { "type": "color", "id": "color_accent", "label": "Accent", "default": "#60241A" },
+    { "type": "color", "id": "color_muted", "label": "Muted text", "default": "#686868" },
+    { "type": "text", "id": "font_serif", "label": "Serif font stack", "default": "Georgia, 'Times New Roman', serif" },
+    { "type": "text", "id": "font_sans", "label": "Sans font stack", "default": "Arial, Helvetica, sans-serif" }
+  ]
+}
+{% endschema %}
