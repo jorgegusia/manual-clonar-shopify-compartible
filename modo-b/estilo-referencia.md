@@ -41,12 +41,12 @@ Es el estilo que se usa **siempre que el usuario no pase otra referencia**. Se c
 2 columnas: portada a la izquierda; a la derecha "← Our Ebooks", H1 serif, precio, botón ancho bordó
 redondeado "Add to cart" y la descripción (párrafo + subtítulo + viñetas con el tema en negrita).
 
-## Imágenes (ver `prompts-imagenes.md`)
+## Imágenes (ver `prompts-imagenes.md` y `generar_imagenes.py`)
 - **Portadas 1:1 (1024×1024):** libro de tapa dura parado, levemente en ángulo, sobre fondo liso del color paper
   (se funde con la página). Tapa: franja superior clara con el título en serif y "DIGITAL EDITION" chiquito;
   mitad inferior con una ilustración plana del nicho en tonos del acento (monocromo bordó/marrón). Lomo en color acento.
 - **Hero 3:2:** flat-lay (vista desde arriba) de objetos del nicho, monocromo en tonos del acento y paper, luz suave, sin texto.
-- **Logo:** ícono de línea fina + wordmark serif + subtítulo en versalitas. Fondo transparente (el footer lo invierte a claro).
+- **Logo:** ícono de línea fina + wordmark serif + subtítulo en versalitas, sobre blanco (el tema lo mezcla con el fondo).
 
 ## Diferencias a propósito con la referencia
 - La referencia usa textos tipo "proposed guide", "may cover": **no** se copian (prometer solo lo concreto).

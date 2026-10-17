@@ -13,7 +13,7 @@
   #{{ hid }} a, #{{ hid }} p, #{{ hid }} h2, #{{ hid }} h3, #{{ hid }} span { color: var(--eb-paper); }
   #{{ hid }} .ef-wrap { max-width: 1440px; margin: auto; padding: 80px 6vw 30px; }
   #{{ hid }} .ef-top { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; }
-  #{{ hid }} .ef-logo img { display: block; width: min({{ s.logo_width }}px, 60vw); height: auto; {% if s.logo_invert %}filter: brightness(0) invert(1);{% endif %} }
+  #{{ hid }} .ef-logo img { display: block; width: min({{ s.logo_width }}px, 60vw); height: auto; {% if s.logo_invert %}filter: grayscale(1) invert(1); mix-blend-mode: screen;{% endif %} }
   #{{ hid }} .ef-logo-text { font: 600 30px/1 var(--eb-serif); }
   #{{ hid }} .ef-legal { margin-top: 26px; font-size: 13px; line-height: 1.7; }
   #{{ hid }} .ef-legal h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 10px; }
@@ -90,7 +90,7 @@
   "settings": [
     { "type": "image_picker", "id": "logo", "label": "Logo" },
     { "type": "range", "id": "logo_width", "label": "Logo width", "min": 120, "max": 320, "step": 10, "unit": "px", "default": 220 },
-    { "type": "checkbox", "id": "logo_invert", "label": "Show logo in light color (needs transparent PNG)", "default": true },
+    { "type": "checkbox", "id": "logo_invert", "label": "Show logo in light color (logo on white or transparent background)", "default": true },
     { "type": "header", "content": "Company (LLC)" },
     { "type": "text", "id": "llc_name", "label": "Legal name" },
     { "type": "text", "id": "address_label", "label": "Address label", "default": "Registered address" },

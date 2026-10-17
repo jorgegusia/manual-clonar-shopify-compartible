@@ -1,6 +1,7 @@
 """Modo B (ebooks): valida los productos de marca.json y arma el JSONL para bulk productSet.
 Uso: python3 -I armar_productos.py <marca.json> <salida.jsonl> [--portadas portadas.json]
-- portadas.json (opcional): {handle: "https://...url-de-la-portada"} (URLs de Higgsfield o de cdn.shopify).
+- portadas.json (opcional): {handle: "https://url"} o la salida de upload_videos.py
+  ({"portada-<handle>.png": "gid://shopify/MediaImage/..."}: usa el archivo ya subido a Files).
   Si no se pasa, usa el campo "portada" de cada producto en marca.json (si lo tiene).
 Reglas que controla (frena si alguna falla):
 - 6 productos, precios entre 19 y 199, todos distintos.
@@ -24,7 +25,10 @@ args = sys.argv[1:]
 marca_path, out = args[0], args[1]
 portadas = {}
 if "--portadas" in args:
-    portadas = json.load(open(args[args.index("--portadas") + 1]))
+    for k, v in json.load(open(args[args.index("--portadas") + 1])).items():
+        if k.startswith("portada-"):  # salida de upload_videos.py: {"portada-<handle>.png": "gid://shopify/MediaImage/..."}
+            k = k[len("portada-"):].rsplit(".", 1)[0]
+        portadas[k] = v
 m = json.load(open(marca_path))
 tienda = m["tienda"]["nombre"]
 prefix = re.sub(r"[^A-Z]", "", m["tienda"].get("slug", tienda).upper())[:3] or "EB"
@@ -57,6 +61,14 @@ for p in prods:
 if errores:
     sys.exit("NO se generó el archivo:\n- " + "\n- ".join(errores))
 
+
+
+def portada_input(valor, alt):
+    if valor.startswith("gid://"):  # archivo ya subido a Files (upload_videos.py ... IMAGE)
+        return {"id": valor, "alt": alt}
+    return {"originalSource": valor, "contentType": "IMAGE", "alt": alt}
+
+
 with open(out, "w") as fh:
     for i, p in enumerate(sorted(prods, key=lambda x: float(x["precio"])), 1):
         top = bool(p.get("top"))
@@ -78,8 +90,7 @@ with open(out, "w") as fh:
                 "inventoryPolicy": "CONTINUE",
                 "inventoryItem": {"requiresShipping": False, "tracked": False},
             }],
-            "files": [{"originalSource": portadas.get(p["handle"]) or p["portada"], "contentType": "IMAGE",
-                       "alt": p["titulo"]}],
+            "files": [portada_input(portadas.get(p["handle"]) or p["portada"], p["titulo"])],
             "metafields": [{"namespace": "custom", "key": "resumen", "type": "single_line_text_field",
                             "value": p["resumen"]}],
         }

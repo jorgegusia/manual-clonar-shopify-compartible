@@ -7,7 +7,7 @@ Sirve para **cualquier** par de tiendas y **cualquier** tema. Está probado en c
 
 > **"Seguí el manual de este README y usá los scripts de `scripts/`. Origen: `XXXX.myshopify.com`. Pedime el acceso al ORIGEN, descargá y analizá todo. Cuando esté listo, pedime el DESTINO, subí todo, compará y corregí en loop hasta que quede idéntica. Después adaptala a la marca nueva. Publicá el tema solo cuando yo diga."**
 
-> **¿Sin acceso a la tienda que querés copiar?** Eso es el **modo B**: [`modo-b/README.md`](modo-b/README.md). Crea una tienda de **ebooks** con el estilo de una tienda de referencia (o el estilo por defecto), el tema según el rubro de tu LLC, imágenes generadas con Higgsfield y políticas con los datos de la LLC.
+> **¿Sin acceso a la tienda que querés copiar?** Eso es el **modo B**: [`modo-b/README.md`](modo-b/README.md). Crea una tienda de **ebooks** con el estilo de una tienda de referencia (o el estilo por defecto), el tema según el rubro de tu LLC, imágenes generadas con Nano Banana (API de Google) y políticas con los datos de la LLC.
 
 Los scripts están en `scripts/` y las consultas GraphQL en `queries/`. Hay que copiarlos a una carpeta de trabajo, por ejemplo `scripts/` dentro de la carpeta del cliente, **separada** de lo descargado. Se corren con `python3 -I`.
 
@@ -385,6 +385,7 @@ scripts/
   edit_theme_json.py          editar JSON del tema preservando el comentario de Shopify
   capturar-link-auth.sh       obtener el link de `shopify store auth`
   analizar_referencia.py      (modo B) analizar una tienda sin acceso: tema, secciones, colores, productos
+  generar_imagenes.py         (modo B) portadas, hero y logos con Nano Banana (API de Gemini)
   armar_productos.py          (modo B) validar los 6 ebooks de marca.json y armar el JSONL de productSet
   armar_tema.py               (modo B) copiar las secciones eb-* al tema y escribir sus JSON
   generar_politicas.py        (modo B) completar las 5 políticas con los datos de la LLC

@@ -27,9 +27,10 @@
 ## 4. Lo que decide Claude (te avisa qué eligió)
 - Tema de los 6 ebooks según el rubro (te propone 3 opciones de nicho y elegís una).
 - Títulos, descripciones, precios (escalera de 19.99 a 199) y cuál es el producto top.
-- Imágenes con Higgsfield: 6 portadas, 1 hero y 2 logos.
+- Imágenes con Nano Banana (API de Google, ~US$ 2 por tienda): 6 portadas, 1 hero y 2 logos.
 
-## 5. Lo que hacés vos en el admin (no se puede por API)
+## 5. Lo que hacés vos (no se puede por API)
+- [ ] Una sola vez: API key de Google con facturación activa, guardada en tu Mac (manual §5).
 - [ ] Shopify Payments activo y moneda de la tienda en USD (para tener £ y $).
 - [ ] Configuración → Idiomas: inglés como idioma predeterminado.
 - [ ] Configuración → Detalles de la tienda: nombre correcto.

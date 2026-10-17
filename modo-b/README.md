@@ -2,7 +2,7 @@
 
 Para cuando **no** hay acceso al admin de la tienda que se quiere copiar (eso es el modo A, el README principal).
 El modo B **siempre** arma una tienda de **productos digitales (ebooks)** cuyo tema sale del **rubro de la LLC**
-del usuario, con el estilo de una tienda de referencia (o el estilo por defecto) e imágenes generadas con Higgsfield.
+del usuario, con el estilo de una tienda de referencia (o el estilo por defecto) e imágenes generadas con **Nano Banana** (API de Gemini de Google; Higgsfield como alternativa).
 
 Archivos de esta carpeta:
 | Archivo | Para qué |
@@ -10,11 +10,11 @@ Archivos de esta carpeta:
 | `ficha-llc-ebooks.md` | Datos que hay que pedirle al usuario (LLC, rubro, tienda, estilo) |
 | `ejemplo-marca.json` | Molde de `marca.json`: todos los datos y textos de la tienda en un solo archivo (ejemplo ficticio) |
 | `estilo-referencia.md` | Estilo por defecto "Paper Studio" (análisis de la referencia) |
-| `prompts-imagenes.md` | Prompts de Higgsfield para portadas, hero y logo |
+| `prompts-imagenes.md` | Prompts de las imágenes (portadas, hero, logo) y cómo revisarlas |
 | `plantillas/tema/sections/eb-*.liquid` | Secciones del tema que recrean el estilo (header, home, producto, footer) |
 | `plantillas/politicas/*.html` | Las 5 políticas en inglés con marcadores `{{LLC}}`, `{{ADDRESS}}`... |
 
-Scripts (en `scripts/` de la skill o del repo del manual, correr con `python3 -I`): `analizar_referencia.py`, `armar_productos.py`,
+Scripts (en `scripts/` de la skill o del repo del manual, correr con `python3 -I`): `analizar_referencia.py`, `generar_imagenes.py`, `armar_productos.py`,
 `armar_tema.py`, `generar_politicas.py`, más los del modo A que se reutilizan (`edit_theme_json.py`,
 `upload_videos.py ... IMAGE`, `capturar-link-auth.sh`).
 
@@ -31,8 +31,9 @@ Scripts (en `scripts/` de la skill o del repo del manual, correr con `python3 -I
 4. **Todo lo que ve el cliente, en inglés.** Al usuario se le habla en español.
 5. **Prometer solo lo concreto.** Nada de "may cover", "proposed", cantidad de páginas o resultados inventados.
    Disclaimer educativo en todos los productos.
-6. **Todo por CLI** (`shopify store execute` / `bulk execute` / `theme ...`), igual que el modo A. Higgsfield es la única
-   herramienta externa (conector MCP).
+6. **Todo por CLI** (`shopify store execute` / `bulk execute` / `theme ...`), igual que el modo A. Lo único externo son las
+   imágenes: API de Gemini con la key del usuario guardada en `~/.config/gemini/api_key` (nunca pedirla por chat ni
+   guardarla en un repo).
 7. **Nunca tocar el tema publicado:** se trabaja sobre un duplicado. Publicar, quitar la contraseña y borrar cosas,
    solo con OK explícito.
 8. **Carpeta del cliente:** `clientes/<tienda>/` con `FICHA.md`, `datos/marca.json`, `referencia/`, `tema/`,
@@ -143,21 +144,42 @@ Visibilidad: `catalogCreate` (contexto mercado USA) → `publicationCreate` (cat
 
 ---
 
-## 5. Imágenes con Higgsfield
+## 5. Imágenes (Nano Banana, API de Gemini)
 
-Seguir `prompts-imagenes.md`: 6 portadas 1:1 (tanda 1), hero 3:2 + 2 logos (tanda 2). Máximo 6 por tanda.
-Revisar que el texto esté bien escrito. Guardar las URLs elegidas en `clientes/<tienda>/imagenes/urls.json`
-y las de portadas en `datos/portadas.json` (`{handle: url}`).
+**Requisito (una sola vez, lo hace el usuario):** key de [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+con **facturación activa** (Nano Banana Pro no tiene uso gratis) y guardada en su Mac sin pasarla por el chat:
+```bash
+mkdir -p ~/.config/gemini && read -s "k?Pegá tu API key de Google y Enter: " && print -r -- "$k" > ~/.config/gemini/api_key && chmod 600 ~/.config/gemini/api_key && unset k && echo " Guardada"
+```
+Comprobar que anda (y qué modelos de imagen tiene): `python3 -I scripts/generar_imagenes.py --listar`.
 
-Hero y logo a Files:
-```graphql
-mutation($files:[FileCreateInput!]!){ fileCreate(files:$files){ files{ id fileStatus alt } userErrors{ field message } } }
-```
-```json
-{"files":[{"originalSource":"https://...hero.png","contentType":"IMAGE","filename":"<slug>-hero.png","alt":"<Tienda> hero"},
-          {"originalSource":"https://...logo.png","contentType":"IMAGE","filename":"<slug>-logo.png","alt":"<Tienda> logo"}]}
-```
-Esperar `READY` y poner en `marca.json` → `imagenes.logo` = `shopify://shop_images/<slug>-logo.png` y `imagenes.hero` igual.
+1. Completar en `marca.json`: `tienda.icono` (ícono del logo), `tienda.subtitulo` (ej. "MARKETING LIBRARY"),
+   `productos[].objetos` (3–5 objetos concretos del tema de cada ebook) y `home.objetos_hero`.
+2. Ver cantidad y costo **antes** de gastar, y pedirle el OK al usuario:
+   ```bash
+   python3 -I scripts/generar_imagenes.py clientes/<tienda>/datos/marca.json clientes/<tienda>/imagenes --prueba
+   ```
+   Normal: 9 imágenes (6 portadas 1:1, hero 3:2, 2 logos 21:9) ≈ **US$ 1,20** con Nano Banana Pro en 2K
+   (US$ 0,134 c/u; 4K US$ 0,24). Con repeticiones, ~US$ 2 por tienda.
+3. Generar (sin `--prueba`). Es reanudable; los 429 se reintentan solos.
+4. **Revisar cada imagen** (abrirlas con Read y hacer zoom): título exacto en cada portada, logo bien escrito,
+   hero sin texto. Rehacer solo la que falle: `--solo portada-<handle> --rehacer` (o `--solo logos`).
+5. Elegir el logo y renombrarlo a `<slug>-logo.png`; mover los descartes a `imagenes/descartes/`.
+6. Subir a Files (staged upload, ya probado en el modo A):
+   ```bash
+   python3 -I scripts/upload_videos.py DESTINO clientes/<tienda>/imagenes clientes/<tienda>/imagenes/subidas.json IMAGE
+   ```
+   `subidas.json` queda `{archivo: id}`: se pasa tal cual a `armar_productos.py --portadas` (las portadas se
+   reutilizan por ID, no se suben dos veces). Hero y logo se usan en el tema como
+   `shopify://shop_images/<slug>-hero.png` y `.../<slug>-logo.png` (ponerlos en `marca.json` → `imagenes`).
+   Verificar `fileStatus: READY` antes de subir el tema.
+- El logo sale sobre fondo **blanco** a propósito: el header lo mezcla con el fondo (`mix-blend-mode: multiply`) y el
+  footer lo muestra claro (`invert` + `screen`), así no hace falta PNG transparente.
+
+**Alternativa: Higgsfield** (si el usuario ya paga el plan). Conector: Configuración → Conectores → Agregar conector
+personalizado → `https://mcp.higgsfield.ai/mcp`. Mismos prompts (`prompts-imagenes.md`), tandas de máximo 6
+(con 9 o más da 429), y sus URLs se pasan directo a Shopify (`fileCreate` con `originalSource` o
+`armar_productos.py --portadas {handle: url}`).
 
 ---
 
@@ -266,10 +288,11 @@ En el navegador (`https://DESTINO/?preview_theme_id=<ID_NUEVO>`; si hay contrase
 | Problema | Causa | Solución |
 |---|---|---|
 | `MULTIPLE_CURRENCIES_NOT_SUPPORTED` | Sin Shopify Payments | Ver §3.2 (no reintentar variantes) |
-| Higgsfield 429 | Más de 6 imágenes por tanda | Tandas de 6 y esperar |
+| Error 429 al generar imágenes | Límite por minuto de la API | `generar_imagenes.py` espera y reintenta; en Higgsfield, tandas de 6 |
+| Error 400/403 de la API de Gemini | Key sin facturación o modelo no habilitado | Activar facturación en AI Studio; `--listar` para ver modelos |
 | Texto mal escrito en portada o logo | El modelo inventa letras | Revisar con zoom y regenerar solo esa |
 | "Section does not exist" al subir `index.json` | Se subió el JSON antes que la sección | Subir primero `sections/eb-*.liquid` |
 | "Página 404" en el editor del tema | Falta la página o política | Crearla (§8–9) |
 | El checkout pide dirección | Variante con envío | `requiresShipping: false` (lo pone `armar_productos.py`) |
 | Referencia con "Error 1001" | El dominio no apunta a Shopify | Pedir la `.myshopify.com` |
-| Logo oscuro en el footer bordó | PNG con fondo | Quitar fondo (Higgsfield) o desactivar "Show logo in light color" |
+| Logo con recuadro en el footer | Logo con fondo de color (no blanco) | Regenerar sobre blanco puro o desactivar "Show logo in light color" |
