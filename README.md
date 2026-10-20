@@ -55,7 +55,7 @@ Completá `plantilla-datos-tienda.md` (está en este repo) y pasásela a Claude 
 7. **Carpeta de trabajo:** la que indique el usuario, con subcarpetas `tema/`, `imagenes-tema/`, `videos-tema/`, `datos/` y `politicas/`. Los scripts van aparte. No pisar los archivos originales del usuario.
 8. **Acciones públicas o irreversibles solo con OK explícito:** publicar el tema, borrar o desactivar descuentos, borrar cualquier cosa, quitar la contraseña. Si el clasificador de permisos de Claude Code bloquea algo (por ejemplo, tocar descuentos), **no buscarle la vuelta**: explicarle al usuario cómo hacerlo en el admin.
 9. **Comandos del CLI desde Bash:** agregar siempre `< /dev/null`, porque si no a veces se cuelgan esperando input. En macOS no existe `timeout`. En zsh una variable con varios IDs **no** se separa sola en un `for`: listar los IDs explícitos o usar Python.
-10. **Logins (CLI y `store auth`):** correrlos en una pestaña de Terminal **visible**. Pasarle al usuario el **link y el código**. Avisar que se vencen en pocos minutos. Si son dos autorizaciones, pedirlas **de a una**.
+10. **Logins (CLI y `store auth`):** correrlos en una pestaña de Terminal **visible**. Pegarle al usuario en el chat la **URL completa y el código** (usa varios perfiles de navegador). `store auth` no imprime el link: usar `scripts/capturar-link-auth.sh` desde el principio. Avisar que se vencen en pocos minutos. Si son dos autorizaciones, pedirlas **de a una**.
 11. **Responder en español, con lenguaje simple.** El usuario no es técnico: explicar qué significa cada decisión ("igual al origen" = qué se borra o cambia).
 
 ---

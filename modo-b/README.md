@@ -83,7 +83,11 @@ shopify auth logout && shopify theme list --store DESTINO.myshopify.com
 shopify store auth --store DESTINO.myshopify.com --scopes read_products,write_products,read_files,write_files,read_content,write_content,read_online_store_pages,write_online_store_pages,read_online_store_navigation,write_online_store_navigation,read_publications,write_publications,read_themes,write_themes,read_legal_policies,write_legal_policies,read_discounts,write_discounts,read_markets,write_markets,read_locales,write_locales,read_translations,write_translations,read_inventory,write_inventory
 ```
 - Todos los permisos de una vez (incluidos **mercados y políticas**). Login en una pestaña de Terminal visible,
-  pasarle link y código al usuario, de a una autorización.
+  de a una autorización.
+- **Pegar SIEMPRE la URL completa en el chat** (y el código): el usuario usa varios perfiles de navegador y la abre en el que
+  corresponde. `store auth` no imprime el link: correrlo desde el principio con
+  `sh scripts/capturar-link-auth.sh DESTINO.myshopify.com <scopes>` y pasar lo que quede en `/tmp/opened-urls.log`.
+  Se aprueba en la MISMA Mac (vuelve a 127.0.0.1) y en pocos minutos.
 - Confirmar el dominio con `shop { name myshopifyDomain currencyCode }` antes de crear nada.
 
 ### 3.2 Mercados UK (GBP) y USA (USD), mismo número en las dos monedas
