@@ -168,14 +168,14 @@ Comprobar que anda (y qué modelos de imagen tiene): `python3 -I scripts/generar
 3. Generar (sin `--prueba`). Es reanudable; los 429 se reintentan solos.
 4. **Revisar cada imagen** (abrirlas con Read y hacer zoom): título exacto en cada portada, logo bien escrito,
    hero sin texto. Rehacer solo la que falle: `--solo portada-<handle> --rehacer` (o `--solo logos`).
-5. Elegir el logo y renombrarlo a `<slug>-logo.png`; mover los descartes a `imagenes/descartes/`.
+5. Elegir el logo, recortarle el margen y guardarlo como `<slug>-logo.<ext>` (la API devuelve JPG); mover los descartes a `imagenes/descartes/`.
 6. Subir a Files (staged upload, ya probado en el modo A):
    ```bash
    python3 -I scripts/upload_videos.py DESTINO clientes/<tienda>/imagenes clientes/<tienda>/imagenes/subidas.json IMAGE
    ```
    `subidas.json` queda `{archivo: id}`: se pasa tal cual a `armar_productos.py --portadas` (las portadas se
    reutilizan por ID, no se suben dos veces). Hero y logo se usan en el tema como
-   `shopify://shop_images/<slug>-hero.png` y `.../<slug>-logo.png` (ponerlos en `marca.json` → `imagenes`).
+   `shopify://shop_images/<slug>-hero.jpg` y `.../<slug>-logo.jpg` (con la extensión real; ponerlos en `marca.json` → `imagenes`).
    Verificar `fileStatus: READY` antes de subir el tema.
 - El logo sale sobre fondo **blanco** a propósito: el header lo mezcla con el fondo (`mix-blend-mode: multiply`) y el
   footer lo muestra claro (`invert` + `screen`), así no hace falta PNG transparente.
@@ -289,6 +289,8 @@ En el navegador (`https://DESTINO/?preview_theme_id=<ID_NUEVO>`; si hay contrase
 
 ## 12. Errores conocidos y aprendizajes
 
+Primera tienda real: oct 2026 (6 ebooks de lettering, UK + US, ~US$ 1,34 en imágenes).
+
 | Problema | Causa | Solución |
 |---|---|---|
 | `MULTIPLE_CURRENCIES_NOT_SUPPORTED` | Sin Shopify Payments | Ver §3.2 (no reintentar variantes) |
@@ -300,3 +302,9 @@ En el navegador (`https://DESTINO/?preview_theme_id=<ID_NUEVO>`; si hay contrase
 | El checkout pide dirección | Variante con envío | `requiresShipping: false` (lo pone `armar_productos.py`) |
 | Referencia con "Error 1001" | El dominio no apunta a Shopify | Pedir la `.myshopify.com` |
 | Logo con recuadro en el footer | Logo con fondo de color (no blanco) | Regenerar sobre blanco puro o desactivar "Show logo in light color" |
+| Nano Banana devuelve **JPG**, no PNG | Formato de salida del modelo | Usar la extensión real en `marca.json → imagenes` (`.../<slug>-logo.jpg`) |
+| Palabra inventada dentro de una ilustración ("hond") | `objetos` pedía "a handwritten word" | En `objetos` no pedir palabras ni letras; rehacer solo esa imagen con `--solo ... --rehacer` |
+| Logo con mucho margen blanco | El modelo centra el logo en 21:9 | Recortar centrado: `sips -c ALTO ANCHO logo-1.jpg --out <slug>-logo.jpg` |
+| `theme pull` corta con `EADDRNOTAVAIL` / `ENOTFOUND` | Red inestable con cientos de archivos | No hace falta el tema completo: alcanza con `locales/en.default.json`; armar con `armar_tema.py` y subir con `push --only` |
+| La tienda está en GBP (no USD) | El usuario la pasó a libras | Funciona igual: UK en GBP sin redondeo + US en USD con tasa manual 1.0 → mismo número en £ y $ |
+| Vista previa redirige a `/password` | Tienda con contraseña | Pasarle al usuario el link de vista previa: logueado en el admin la ve; Claude no ingresa la contraseña |
