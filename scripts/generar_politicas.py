@@ -47,6 +47,7 @@ valores = {
     "STATE": llc["estado"],
     "ADDRESS": llc["direccion"],
     "EMAIL": llc["email"],
+    "LEGAL_EMAIL": llc.get("email_legal") or llc["email"],
     "PHONE": llc.get("telefono") or "xxx xx xxx",
     "HOURS": llc.get("horario") or "Monday to Friday, 9:00 am to 5:00 pm (ET)",
     "DATE": fecha,

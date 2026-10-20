@@ -15,6 +15,7 @@
     "estado": "New Mexico",
     "direccion": "123 Example St, Suite 100, Springfield, NM 87500, United States",
     "email": "support@glowstudio-ejemplo.com",
+    "email_legal": "legal@glowstudio-ejemplo.com",
     "telefono": "",
     "horario": "Monday to Friday, 9:00 am to 5:00 pm (ET)",
     "rubro": "Digital marketing consulting for small businesses"

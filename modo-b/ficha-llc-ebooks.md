@@ -8,6 +8,8 @@
 - **Estado donde está registrada:** `[New Mexico]`
 - **Dirección completa** (la de la LLC o del agente registrado): `[123 Example St, Suite 100, Springfield, NM 87500, USA]`
 - **Email de soporte:** `[support@tudominio.com]`
+- **Email legal** (opcional; va en privacidad y términos): `[legal@tudominio.com]`
+  - Verificar que el dominio exista y reciba correo (`dig +short MX dominio.com`): un error de tipeo hace rebotar los emails.
 - **Teléfono:** `[+1 000 000 0000]` (si no hay, va "xxx xx xxx" y lo cambiás después)
 - **Horario de atención:** `[Monday to Friday, 9:00 am to 5:00 pm (ET)]`
 - **Rubro / actividad de la LLC** (como figura en sus papeles o en Stripe/Shopify Payments): `[Digital marketing consulting]`
