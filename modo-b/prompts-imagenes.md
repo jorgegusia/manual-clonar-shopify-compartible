@@ -4,7 +4,7 @@ Los prompts **reales** están en `scripts/generar_imagenes.py` (constantes `PORT
 y se completan solos con `marca.json`. Este archivo explica qué pide cada uno y cómo revisarlos. Si se cambia un
 prompt, cambiarlo en el script (y acá si cambia la idea).
 
-Herramienta por defecto: **Nano Banana Pro** (`gemini-3-pro-image-preview`, API de Gemini), 2K. Alternativa: Higgsfield
+Herramienta por defecto: **Nano Banana Pro** (`gemini-3-pro-image`, API de Gemini), 2K. Alternativa: Higgsfield
 (mismos textos, tandas de máximo 6). Textos dentro de las imágenes en **inglés**.
 
 ## Qué se genera (9 por tienda)

@@ -22,8 +22,9 @@ import urllib.error
 import urllib.request
 
 API = "https://generativelanguage.googleapis.com/v1beta"
-MODELO = "gemini-3-pro-image-preview"  # Nano Banana Pro. Barato y peor con texto: gemini-2.5-flash-image
-PRECIOS = {"gemini-3-pro-image-preview": {"1K": 0.134, "2K": 0.134, "4K": 0.24}, "gemini-2.5-flash-image": 0.039}
+MODELO = "gemini-3-pro-image"  # Nano Banana Pro (estable). Ver opciones con --listar (Nano Banana 2: gemini-3.1-flash-image)
+PRO = {"1K": 0.134, "2K": 0.134, "4K": 0.24}
+PRECIOS = {"gemini-3-pro-image": PRO, "gemini-3-pro-image-preview": PRO, "gemini-2.5-flash-image": 0.039}
 
 PORTADA = ("Premium product mockup of a single hardcover book standing upright, slightly angled to the left, centered on "
            "a seamless plain background in {paper} with a soft natural shadow. Square 1:1, minimal editorial style. "
