@@ -9,6 +9,12 @@ Sirve para **cualquier** par de tiendas y **cualquier** tema. Está probado en c
 
 > **¿Sin acceso a la tienda que querés copiar?** Eso es el **modo B**: [`modo-b/README.md`](modo-b/README.md). Crea una tienda de **ebooks** con el estilo de una tienda de referencia (o el estilo por defecto), el tema según el rubro de tu LLC, imágenes generadas con Nano Banana (API de Google) y políticas con los datos de la LLC.
 
+> **Skills para Claude Code** (carpeta `skills/`): `shopify-clonar-cli` (este manual, modo A) y `shopify-recrear-estilo` (modo B). Para que tu Claude las use, copialas a tu carpeta de skills y abrí un chat nuevo:
+> ```bash
+> mkdir -p ~/.claude/skills && cp -R skills/shopify-clonar-cli skills/shopify-recrear-estilo ~/.claude/skills/
+> ```
+> Cuando el repo se actualice, hacé `git pull` y volvé a copiarlas. Si tu acceso es de solo lectura, saltá los pasos de las skills que dicen "actualizar los repos del manual".
+
 Los scripts están en `scripts/` y las consultas GraphQL en `queries/`. Hay que copiarlos a una carpeta de trabajo, por ejemplo `scripts/` dentro de la carpeta del cliente, **separada** de lo descargado. Se corren con `python3 -I`.
 
 ---

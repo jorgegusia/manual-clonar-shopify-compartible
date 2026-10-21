@@ -1,0 +1,1 @@
+{ files { edges { node { __typename id alt fileStatus ... on MediaImage { image { url } } ... on Video { filename originalSource { url } } ... on GenericFile { url } } } } }

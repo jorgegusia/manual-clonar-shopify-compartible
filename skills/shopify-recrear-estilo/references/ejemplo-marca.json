@@ -1,0 +1,114 @@
+{
+  "_nota": "Ejemplo con datos FICTICIOS. Copiar a clientes/<tienda>/datos/marca.json y completar. Textos para el cliente en INGLÉS.",
+  "tienda": {
+    "nombre": "Glow Studio",
+    "slug": "glow",
+    "myshopify": "glow-studio-ejemplo.myshopify.com",
+    "web": "glow-studio-ejemplo.myshopify.com",
+    "codigo_descuento": "GLOW15",
+    "descuento_pct": 15,
+    "icono": "a small megaphone",
+    "subtitulo": "MARKETING LIBRARY"
+  },
+  "llc": {
+    "nombre": "EJEMPLO COMMERCE LLC",
+    "estado": "New Mexico",
+    "direccion": "123 Example St, Suite 100, Springfield, NM 87500, United States",
+    "email": "support@glowstudio-ejemplo.com",
+    "email_legal": "legal@glowstudio-ejemplo.com",
+    "telefono": "",
+    "horario": "Monday to Friday, 9:00 am to 5:00 pm (ET)",
+    "rubro": "Digital marketing consulting for small businesses"
+  },
+  "nicho": "Practical social media and content marketing guides for small business owners",
+  "paleta": {
+    "paper": "#F4EDEC",
+    "ink": "#171717",
+    "accent": "#60241A",
+    "muted": "#686868"
+  },
+  "fuentes": {
+    "serif": "Georgia, 'Times New Roman', serif",
+    "sans": "Arial, Helvetica, sans-serif"
+  },
+  "imagenes": {
+    "logo": "shopify://shop_images/glow-logo.png",
+    "hero": "shopify://shop_images/glow-hero.png"
+  },
+  "home": {
+    "kicker": "Practical guides for social media, content and small business marketing",
+    "titulo": "A calm, clear library of marketing know-how",
+    "intro": "Digital guides that walk small business owners through social media, content planning and simple marketing systems, step by step.",
+    "boton": "Explore the ebooks",
+    "biblioteca_titulo": "A new idea to begin with.",
+    "biblioteca_texto": "Choose a digital guide and learn at your own pace.",
+    "banda_kicker": "Digital guides",
+    "banda_texto": "Clear, structured guides on social media, content planning and simple marketing systems for small businesses.",
+    "objetos_hero": "a smartphone, a small ring light, a paper notebook with a content calendar, sticky notes, a pen and a coffee cup"
+  },
+  "faq": [
+    {
+      "q": "How do I receive my ebook?",
+      "a": "Right after payment you get a download link on the confirmation page and by email."
+    },
+    {
+      "q": "What format are the ebooks?",
+      "a": "PDF files that you can read on any computer, tablet or phone."
+    },
+    {
+      "q": "Can I get a refund?",
+      "a": "Yes, within 14 days if the file is damaged, does not match its description or never arrived. See our Refund Policy."
+    }
+  ],
+  "productos": [
+    {
+      "titulo": "Social Media Foundations",
+      "handle": "social-media-foundations",
+      "resumen": "Core platforms, profiles and a simple weekly routine",
+      "precio": "19.99",
+      "descripcion_html": "<p>A starter guide for small business owners who want a clear, low-stress way to show up on social media.</p><h3>What's inside</h3><ul><li><strong>Choosing platforms:</strong> how to pick the one or two channels that fit your business.</li><li><strong>Profile set-up:</strong> bio, photo, links and highlights that explain what you do.</li><li><strong>Weekly routine:</strong> a simple posting and replying schedule.</li><li><strong>First 30 posts:</strong> prompts organised by goal.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "objetos": "a smartphone showing a simple profile grid, speech bubbles and a heart icon"
+    },
+    {
+      "titulo": "Content Calendar Made Simple",
+      "handle": "content-calendar-made-simple",
+      "resumen": "Plan a month of posts in one afternoon",
+      "precio": "29.99",
+      "descripcion_html": "<p>A planning guide for owners who want to stop improvising and post with a plan.</p><h3>What's inside</h3><ul><li><strong>Monthly themes:</strong> how to group posts around offers, seasons and questions.</li><li><strong>Batching:</strong> writing and scheduling a month of content in one session.</li><li><strong>Templates:</strong> a printable calendar and a post checklist.</li><li><strong>Review:</strong> a 15-minute monthly check of what worked.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "objetos": "a monthly paper calendar, sticky notes and a pencil"
+    },
+    {
+      "titulo": "Short-Form Video for Small Brands",
+      "handle": "short-form-video-for-small-brands",
+      "resumen": "Simple reels and short videos with a phone",
+      "precio": "49.99",
+      "descripcion_html": "<p>A practical guide to filming and editing short videos with just a phone.</p><h3>What's inside</h3><ul><li><strong>Formats:</strong> six short-video formats that suit service and product businesses.</li><li><strong>Filming:</strong> light, sound and framing with a phone.</li><li><strong>Editing:</strong> a simple editing workflow with free apps.</li><li><strong>Captions and hooks:</strong> how to open and close each video.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "objetos": "a phone on a small tripod, a ring light and film frames"
+    },
+    {
+      "titulo": "Email Marketing Essentials",
+      "handle": "email-marketing-essentials",
+      "resumen": "Build a list and send emails people open",
+      "precio": "69.99",
+      "descripcion_html": "<p>A step-by-step guide to starting an email list and writing simple, useful emails.</p><h3>What's inside</h3><ul><li><strong>List building:</strong> sign-up forms and simple lead magnets.</li><li><strong>Welcome sequence:</strong> the first five emails a new subscriber receives.</li><li><strong>Writing:</strong> subject lines, structure and calls to action.</li><li><strong>Measuring:</strong> the three numbers to check each month.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "objetos": "envelopes, an at-sign symbol and a laptop"
+    },
+    {
+      "titulo": "The Complete Marketing Playbook",
+      "handle": "the-complete-marketing-playbook",
+      "resumen": "A full system that connects social, content and email",
+      "precio": "99.99",
+      "descripcion_html": "<p>An advanced guide that connects social media, content and email into one weekly marketing system.</p><h3>What's inside</h3><ul><li><strong>System map:</strong> how each channel feeds the others.</li><li><strong>Weekly workflow:</strong> a repeatable plan for a one-person team.</li><li><strong>Offers and launches:</strong> planning a simple promotion from start to finish.</li><li><strong>Tracking:</strong> a one-page dashboard to follow progress.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "objetos": "a strategy board with arrows, a target and a laptop"
+    },
+    {
+      "titulo": "Small Business Marketing Collection",
+      "handle": "small-business-marketing-collection",
+      "resumen": "All five guides together in one complete collection",
+      "precio": "199.00",
+      "descripcion_html": "<p>The complete collection: all five guides in one bundle, from first posts to a full marketing system.</p><h3>What's inside</h3><ul><li><strong>Social Media Foundations:</strong> platforms, profiles and a weekly routine.</li><li><strong>Content Calendar Made Simple:</strong> plan a month of posts in one afternoon.</li><li><strong>Short-Form Video for Small Brands:</strong> film and edit short videos with a phone.</li><li><strong>Email Marketing Essentials:</strong> build a list and write useful emails.</li><li><strong>The Complete Marketing Playbook:</strong> connect every channel into one system.</li></ul><h3>Format</h3><p>PDF ebook. Instant delivery by email. Read on any device.</p><p><em>This guide is educational and is not a substitute for professional advice. No specific results are guaranteed.</em></p><p><em>Digital product only. No physical item is shipped.</em></p>",
+      "top": true,
+      "objetos": "a smartphone, a calendar, a ring light, envelopes and a target"
+    }
+  ]
+}

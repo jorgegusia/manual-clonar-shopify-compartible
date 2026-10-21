@@ -1,0 +1,14 @@
+{
+  collections {
+    edges {
+      node {
+        id handle title descriptionHtml sortOrder templateSuffix
+        seo { title description }
+        image { url altText }
+        ruleSet { appliedDisjunctively rules { column relation condition } }
+        metafields { edges { node { namespace key type value } } }
+        products { edges { node { handle } } }
+      }
+    }
+  }
+}

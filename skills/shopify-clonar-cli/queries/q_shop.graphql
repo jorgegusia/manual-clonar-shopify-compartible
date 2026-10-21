@@ -1,0 +1,10 @@
+{
+  shop { name myshopifyDomain primaryDomain { url } currencyCode plan { displayName } shopPolicies { type title body } }
+  productsCount(limit: null) { count }
+  collectionsCount(limit: null) { count }
+  pagesCount(limit: null) { count }
+  p: metafieldDefinitions(first: 50, ownerType: PRODUCT) { nodes { namespace key name type { name } metafieldsCount capabilities { smartCollectionCondition { enabled } } } }
+  metaobjectDefinitions(first: 50) { nodes { type name metaobjectsCount } }
+  urlRedirects(first: 250) { nodes { path target } }
+  publications(first: 10) { nodes { id name } }
+}

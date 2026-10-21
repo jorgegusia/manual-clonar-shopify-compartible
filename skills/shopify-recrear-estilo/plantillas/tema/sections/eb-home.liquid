@@ -1,0 +1,176 @@
+{%- comment -%}
+  Modo B (ebooks): home completa en una sola sección.
+  1. Hero editorial (2 columnas, imagen con arco arriba)
+  2. Biblioteca: todos los productos ordenados por precio, tarjetas numeradas 01, 02...
+  3. Banda de color con frase de cierre
+  4. FAQ opcional (bloques "faq")
+  Colores y fuentes salen de las variables --eb-* que define eb-header.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign hid = 'eb-home-' | append: section.id
+  assign products_sorted = collections.all.products | sort: 'price'
+-%}
+<style>
+  #{{ hid }} { color: var(--eb-ink); background: var(--eb-paper); font-family: var(--eb-serif); overflow: hidden; }
+  #{{ hid }} * { box-sizing: border-box; }
+  #{{ hid }} a { color: inherit; text-underline-offset: 5px; }
+  #{{ hid }} h1, #{{ hid }} h2, #{{ hid }} h3, #{{ hid }} p { font-family: inherit; color: inherit; }
+  #{{ hid }} .eb-kicker { font: 700 12px/1.6 var(--eb-sans); letter-spacing: .13em; text-transform: uppercase; margin: 0; }
+  #{{ hid }} .eb-hero { max-width: 1440px; margin: auto; padding: 88px 6vw; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 5vw; }
+  #{{ hid }} .eb-hero h1 { font-size: clamp(44px, 6vw, 94px); line-height: 1.04; letter-spacing: -.045em; margin: 22px 0 26px; font-weight: 500; }
+  #{{ hid }} .eb-intro { font-size: 18px; line-height: 1.7; max-width: 590px; margin: 0; }
+  #{{ hid }} .eb-button { display: inline-flex; align-items: center; gap: 42px; padding: 18px 25px; margin-top: 30px; background: var(--eb-accent); color: var(--eb-paper); text-decoration: none; font: 700 15px var(--eb-sans); }
+  #{{ hid }} .eb-visual { min-width: 0; border-radius: 50% 50% 0 0; overflow: hidden; background: color-mix(in srgb, var(--eb-accent) 12%, var(--eb-paper)); }
+  #{{ hid }} .eb-visual img { display: block; width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3 / 2; }
+  #{{ hid }} .eb-library { max-width: 1440px; padding: 82px 6vw 100px; margin: auto; }
+  #{{ hid }} .eb-heading { max-width: 760px; margin-bottom: 42px; }
+  #{{ hid }} h2 { font-size: clamp(34px, 4vw, 64px); line-height: 1.05; letter-spacing: -.035em; margin: 15px 0; font-weight: 500; }
+  #{{ hid }} .eb-heading > p:last-child { font: 17px/1.6 var(--eb-sans); }
+  #{{ hid }} .eb-catalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+  #{{ hid }} .eb-card { min-width: 0; }
+  #{{ hid }} .eb-art { display: block; overflow: hidden; background: var(--eb-paper); position: relative; }
+  #{{ hid }} .eb-art img { display: block; width: 100%; height: auto; transition: transform .3s ease; }
+  #{{ hid }} .eb-art:hover img { transform: scale(1.025); }
+  #{{ hid }} .eb-badge { position: absolute; top: 14px; left: 14px; background: var(--eb-accent); color: var(--eb-paper); font: 700 11px/1 var(--eb-sans); letter-spacing: .1em; text-transform: uppercase; padding: 8px 10px; }
+  #{{ hid }} .eb-card-copy { padding: 25px 0; }
+  #{{ hid }} .eb-card-number { font: 700 10px var(--eb-sans); letter-spacing: .1em; text-transform: uppercase; }
+  #{{ hid }} h3 { font-size: 27px; line-height: 1.12; margin: 18px 0 13px; }
+  #{{ hid }} h3 a { text-decoration: none; }
+  #{{ hid }} .eb-card-copy p { font: 15px/1.65 var(--eb-sans); min-height: 50px; margin: 0; }
+  #{{ hid }} .eb-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; font: 700 14px var(--eb-sans); margin-top: 25px; }
+  #{{ hid }} .eb-card-bottom a { text-decoration: none; }
+  #{{ hid }} .eb-band { background: var(--eb-accent); color: var(--eb-paper); }
+  #{{ hid }} .eb-band-inner { max-width: 1440px; margin: auto; padding: 90px 6vw; }
+  #{{ hid }} .eb-band p.eb-statement { font-size: clamp(28px, 3.4vw, 50px); line-height: 1.18; max-width: 1100px; margin: 22px 0 30px; }
+  #{{ hid }} .eb-band a { font: 14px var(--eb-sans); text-decoration: none; }
+  #{{ hid }} .eb-faq { max-width: 860px; margin: auto; padding: 90px 6vw; }
+  #{{ hid }} .eb-faq details { border-bottom: 1px solid color-mix(in srgb, var(--eb-ink) 18%, transparent); padding: 20px 0; }
+  #{{ hid }} .eb-faq summary { cursor: pointer; font-size: 21px; list-style: none; display: flex; justify-content: space-between; gap: 20px; }
+  #{{ hid }} .eb-faq summary::after { content: '+'; color: var(--eb-accent); }
+  #{{ hid }} .eb-faq details[open] summary::after { content: '–'; }
+  #{{ hid }} .eb-faq .eb-answer { font: 16px/1.7 var(--eb-sans); margin-top: 12px; }
+  @media (max-width: 900px) {
+    #{{ hid }} .eb-hero { grid-template-columns: 1fr; padding: 56px 6vw; }
+    #{{ hid }} .eb-catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    #{{ hid }} .eb-hero, #{{ hid }} .eb-library, #{{ hid }} .eb-band-inner, #{{ hid }} .eb-faq { padding-inline: 20px; }
+    #{{ hid }} .eb-catalog { grid-template-columns: 1fr; }
+    #{{ hid }} .eb-button { width: 100%; justify-content: space-between; }
+  }
+</style>
+
+<div id="{{ hid }}">
+  <section class="eb-hero">
+    <div class="eb-copy">
+      {%- if s.kicker != blank -%}<p class="eb-kicker">{{ s.kicker }}</p>{%- endif -%}
+      <h1>{{ s.title }}</h1>
+      {%- if s.intro != blank -%}<p class="eb-intro">{{ s.intro }}</p>{%- endif -%}
+      {%- if s.button_label != blank -%}
+        <a class="eb-button" href="{{ s.button_link | default: '#eb-library' }}">{{ s.button_label }} <span aria-hidden="true">↗</span></a>
+      {%- endif -%}
+    </div>
+    <div class="eb-visual">
+      {%- if s.hero_image != blank -%}
+        {{ s.hero_image | image_url: width: 1600 | image_tag: alt: s.title, loading: 'eager', sizes: '(max-width: 900px) 100vw, 50vw' }}
+      {%- elsif s.hero_image_url != blank -%}
+        <img src="{{ s.hero_image_url }}" alt="{{ s.title | escape }}" width="1200" height="800" loading="eager">
+      {%- endif -%}
+    </div>
+  </section>
+
+  <section class="eb-library" id="eb-library">
+    <div class="eb-heading">
+      {%- if s.library_kicker != blank -%}<p class="eb-kicker">{{ s.library_kicker }}</p>{%- endif -%}
+      <h2>{{ s.library_title }}</h2>
+      {%- if s.library_text != blank -%}<p>{{ s.library_text }}</p>{%- endif -%}
+    </div>
+    <div class="eb-catalog">
+      {%- for product in products_sorted limit: 50 -%}
+        <article class="eb-card">
+          <a class="eb-art" href="{{ product.url }}">
+            {%- if product.featured_image -%}
+              {{ product.featured_image | image_url: width: 900 | image_tag: alt: product.title, loading: 'lazy', sizes: '(max-width: 560px) 100vw, 33vw' }}
+            {%- endif -%}
+            {%- if product.tags contains 'top' -%}<span class="eb-badge">{{ s.top_badge }}</span>{%- endif -%}
+          </a>
+          <div class="eb-card-copy">
+            <span class="eb-card-number">{% if forloop.index < 10 %}0{% endif %}{{ forloop.index }} / {{ s.card_label }}</span>
+            <h3><a href="{{ product.url }}">{{ product.title }}</a></h3>
+            <p>{{ product.metafields.custom.resumen.value | default: product.description | strip_html | truncatewords: 14 }}</p>
+            <div class="eb-card-bottom">
+              <span>{{ product.price | money }}</span>
+              <a href="{{ product.url }}">{{ s.card_link }} <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </section>
+
+  {%- if s.band_text != blank -%}
+    <section class="eb-band">
+      <div class="eb-band-inner">
+        {%- if s.band_kicker != blank -%}<p class="eb-kicker">{{ s.band_kicker }}</p>{%- endif -%}
+        <p class="eb-statement">{{ s.band_text }}</p>
+        {%- if s.band_link_label != blank -%}
+          <a href="{{ s.band_link | default: '/pages/contact' }}">{{ s.band_link_label }} <span aria-hidden="true">↗</span></a>
+        {%- endif -%}
+      </div>
+    </section>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    <section class="eb-faq">
+      {%- if s.faq_title != blank -%}<h2>{{ s.faq_title }}</h2>{%- endif -%}
+      {%- for block in section.blocks -%}
+        <details {{ block.shopify_attributes }}>
+          <summary>{{ block.settings.question }}</summary>
+          <div class="eb-answer">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </section>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "EB Home",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "title", "label": "Title", "default": "A calm, refined library of digital guides" },
+    { "type": "textarea", "id": "intro", "label": "Intro" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Explore the ebooks" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image (3:2)" },
+    { "type": "text", "id": "hero_image_url", "label": "Hero image URL (fallback)" },
+    { "type": "header", "content": "Library" },
+    { "type": "text", "id": "library_kicker", "label": "Kicker" },
+    { "type": "text", "id": "library_title", "label": "Title", "default": "A new idea to begin with." },
+    { "type": "text", "id": "library_text", "label": "Text", "default": "Choose a digital guide and learn at your own pace." },
+    { "type": "text", "id": "card_label", "label": "Card label", "default": "Digital guides" },
+    { "type": "text", "id": "card_link", "label": "Card link label", "default": "View ebook" },
+    { "type": "text", "id": "top_badge", "label": "Badge for products tagged 'top'", "default": "Bestseller" },
+    { "type": "header", "content": "Closing band" },
+    { "type": "text", "id": "band_kicker", "label": "Kicker", "default": "Digital guides" },
+    { "type": "textarea", "id": "band_text", "label": "Statement" },
+    { "type": "text", "id": "band_link_label", "label": "Link label", "default": "Contact us" },
+    { "type": "url", "id": "band_link", "label": "Link" },
+    { "type": "header", "content": "FAQ (add FAQ blocks)" },
+    { "type": "text", "id": "faq_title", "label": "FAQ title", "default": "Questions" }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "FAQ",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question" },
+        { "type": "richtext", "id": "answer", "label": "Answer" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "EB Home" }]
+}
+{% endschema %}
