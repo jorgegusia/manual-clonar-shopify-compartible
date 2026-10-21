@@ -1,7 +1,7 @@
 # Manual v4: clonar una tienda Shopify completa de ORIGEN a DESTINO (por CLI) y adaptarla a la marca nueva
 
 Es la memoria de trabajo: qué se hace, en qué orden, qué falló antes y cómo se resolvió.
-Sirve para **cualquier** par de tiendas y **cualquier** tema. Está probado en clones reales: una tienda de cartas coleccionables y una de cosmética coreana (ver *Casos*, al final).
+Sirve para **cualquier** par de tiendas y **cualquier** tema. Está probado en clones reales: una tienda de cartas coleccionables, una de cosmética coreana y una de calzado (ver *Casos*, al final).
 
 **Cómo usarlo:** abrí un chat nuevo con Claude Code, pasale el link de este repo o pegá este README y decile:
 
@@ -93,7 +93,7 @@ El usuario inicia sesión con la cuenta **dueña** de esa tienda. Cada tienda nu
 
 ### 2.2 API (datos), solo lectura
 ```bash
-shopify store auth --store ORIGEN.myshopify.com --scopes read_products,read_files,read_content,read_online_store_pages,read_online_store_navigation,read_publications,read_inventory,read_themes,read_legal_policies,read_metaobjects,read_metaobject_definitions,read_discounts
+shopify store auth --store ORIGEN.myshopify.com --scopes read_products,read_files,read_content,read_online_store_pages,read_online_store_navigation,read_publications,read_inventory,read_themes,read_legal_policies,read_metaobjects,read_metaobject_definitions,read_discounts,read_markets
 ```
 `store auth` **no imprime el link**: lo abre en el navegador. Si el usuario no lo ve, usar `scripts/capturar-link-auth.sh` (ver 4.2).
 
@@ -150,9 +150,9 @@ shopify auth logout && shopify theme list --store DESTINO.myshopify.com
 
 ### 4.2 API (lectura y escritura)
 ```bash
-shopify store auth --store DESTINO.myshopify.com --scopes read_products,write_products,read_files,write_files,read_content,write_content,read_online_store_pages,write_online_store_pages,read_online_store_navigation,write_online_store_navigation,read_publications,write_publications,read_inventory,write_inventory,read_themes,write_themes,read_legal_policies,write_legal_policies,read_metaobjects,write_metaobjects,read_metaobject_definitions,write_metaobject_definitions,read_discounts,write_discounts
+shopify store auth --store DESTINO.myshopify.com --scopes read_products,write_products,read_files,write_files,read_content,write_content,read_online_store_pages,write_online_store_pages,read_online_store_navigation,write_online_store_navigation,read_publications,write_publications,read_inventory,write_inventory,read_themes,write_themes,read_legal_policies,write_legal_policies,read_metaobjects,write_metaobjects,read_metaobject_definitions,write_metaobject_definitions,read_discounts,write_discounts,read_locations,read_markets
 ```
-- **Pedir todos los permisos de una vez**, incluidos los de descuentos. Agregar permisos después obliga a re-autorizar y puede **cortar la sesión del CLI de temas** (error 401 *"Service is not valid for authentication"*). En ese caso: `shopify auth logout` + login de nuevo.
+- **Pedir todos los permisos de una vez**, incluidos los de descuentos, `read_locations` (para cargar el stock) y `read_markets` (para comparar los mercados). Agregar permisos después obliga a re-autorizar y puede **cortar la sesión del CLI de temas** (error 401 *"Service is not valid for authentication"*). En ese caso: `shopify auth logout` + login de nuevo.
 - Si el usuario no ve la página o se le vence (*"Timed out waiting for OAuth callback"*):
   ```bash
   sh scripts/capturar-link-auth.sh DESTINO.myshopify.com <scopes>
@@ -178,6 +178,8 @@ shopify theme push --store DESTINO.myshopify.com --unpublished --theme "NOMBRE (
 ```
 - Es **normal** el error `Setting 'video_full' value does not point to an applicable shopify-hosted video resource`. Significa que `templates/index.json` **no se guardó** y que la home va a dar 404. Se corrige en 5.4.
 - **Verificar:** `theme pull` del tema nuevo a una carpeta temporal y `diff -rq` contra el original. Solo puede diferir `AGENTS.md`, que no es del tema.
+  - También es normal que falten en `config/settings_data.json` los **app embeds** (bloques `shopify://apps/...`) de apps que el destino todavía no tiene: Shopify los descarta. Cuando el usuario instale esas apps, volver a subir `config/settings_data.json`.
+  - Y que se borren settings que la sección ya no declara en su schema (ej. `pattern_*`): no cambian nada visible.
 
 ### 5.2 Definiciones de metacampos, ANTES de colecciones y productos
 Sin definición, las colecciones automáticas con reglas `PRODUCT_METAFIELD_DEFINITION` **no se crean**. Matrixify da *"Metafield Definition [...] not found"*.
@@ -204,9 +206,11 @@ Tiene que terminar sin `errors`.
 ### 5.5 Productos
 **Opción A (CLI, recomendada):**
 ```bash
-python3 -I scripts/build_productset.py datos/productos-origen.jsonl datos/destino-productos.jsonl --map datos/mapa-archivos.json
+python3 -I scripts/build_productset.py datos/productos-origen.jsonl datos/destino-productos.jsonl --map datos/mapa-archivos.json --location gid://shopify/Location/ID_DESTINO
 shopify store bulk execute -s DESTINO --allow-mutations --variable-file datos/destino-productos.jsonl --watch --output-file datos/productset-result.jsonl -q 'mutation($input: ProductSetInput!){ productSet(input:$input){ product{ id handle } userErrors{ field message code } } }'
 ```
+- **Foto de cada variante** (ej. una por color): `q_prod.graphql` trae `image { url }` de cada variante y `build_productset.py` la asigna con `file` (la misma URL que en `files`). Sin eso, al elegir un color no cambia la foto.
+- **Stock:** con `--location` (ID de la ubicación del destino, `locations(first:5){nodes{id name}}`) se carga el `inventoryQuantity` del origen en las variantes con seguimiento de stock.
 - Verificar `referencias de archivo sin mapear: 0`. Con el resultado se arma `mapa-productos.json` (`{handle: id}`).
 - **Publicar** en los canales (bulk `publishablePublish`): lo creado por API **no se publica solo**. Usar los mismos canales que el origen, si existen en el destino.
 
@@ -223,6 +227,7 @@ Crea las manuales que faltan (y las publica) y deja los mismos productos **en el
   - `data-sharing-opt-out` la genera Shopify en cada tienda: no tocarla.
   - Las diferencias de codificación (`&quot;` vs `"`) no cuentan.
 - **Menús:** `python3 -I scripts/sync_menus.py DESTINO datos/pages-menus-origen.json main-menu,footer,...`. Reasigna cada ítem al recurso del destino por handle. **No** sincronizar `customer-account-main-menu`, porque sus URLs llevan el ID de cada tienda.
+  - Los ítems de tipo **política** (`SHOP_POLICY`) se reasignan por tipo. Si la política todavía no existe en el destino (ej. privacidad en gestión automática) el menú falla con *"shop_policy not found"*: cargar primero las políticas y después los menús.
 - **Políticas:** `shopPolicyUpdate` con `type` REFUND_POLICY, PRIVACY_POLICY, TERMS_OF_SERVICE, SHIPPING_POLICY, CONTACT_INFORMATION o LEGAL_NOTICE.
   - La **de privacidad** falla si está en gestión automática (*"Automatic management for Privacy Policy must be turned off"*). La desactiva el usuario en Configuración → Políticas → Privacy policy.
   - "Purchase options cancellation policy — Required" solo aplica si se venden suscripciones o preventas.
@@ -250,6 +255,11 @@ Volver a correr `build_prices.py`: tiene que dar 0.
 ### 6.3 Canales y tienda en vivo
 - Revisar `publishedOnPublication` de productos y colecciones contra el origen. Los "free gift" suelen estar solo en Online Store, a propósito.
 - Probar `/`, una colección, un producto y una página. Si hay contraseña, todo redirige a `/password`.
+- **Comparar el texto visible** del origen en vivo contra la vista previa del destino. La vista previa necesita cookies, porque redirige y pierde el `preview_theme_id`:
+  ```bash
+  curl -s -c cj -b cj -L -o destino.html "https://DESTINO.myshopify.com/products/HANDLE?preview_theme_id=ID"
+  ```
+  Sacar las etiquetas y hacer `diff` con la misma página del origen. Lo típico que queda: el nombre de la tienda ("My Store") y el **selector de países** si los mercados del destino no son los mismos que los del origen.
 
 ---
 
@@ -323,6 +333,10 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Borrar o desactivar descuentos bloqueado por Claude Code | Clasificador de permisos (recurso compartido) | No forzarlo: lo hace el usuario en el admin, o agrega un permiso con `/permissions` |
 | Imágenes del tema en 404 | Tampoco existen en el origen | Buscarlas en la tienda madre o pedírselas al usuario |
 | Pestaña del navegador dice "My Store" | Nombre de la tienda por defecto | Lo cambia el usuario en Settings → General (no hay API) |
+| Una imagen del tema `.avif` aparece en Files del destino como `.png` | Shopify convierte AVIF al crear el archivo | Cambiar la referencia `shopify://shop_images/X.avif` → `X.png` en el JSON del tema del destino |
+| Menú: `Couldn't create link "Privacy Policy", shop_policy not found` | La política no existe todavía en el destino | Cargar las políticas antes; `sync_menus.py` reasigna `SHOP_POLICY` por tipo |
+| Al elegir un color no cambia la foto | Las variantes se crearon sin `file` | Exportar con `image { url }` en variantes y `build_productset.py` (asigna la foto) |
+| `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
 
 ---
 
@@ -341,6 +355,12 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - Política de privacidad automática.
   - Link de `store auth` capturado con un wrapper.
   - Pedir todos los permisos (incluidos descuentos) de una vez.
+- **v4.1 (tercer clon, clon idéntico):**
+  - Foto por variante y stock por ubicación (`build_productset.py --location`); `compare.py` ahora revisa también fotos de variantes, stock, vendor, tipo, etiquetas y descripción.
+  - `sync_menus.py` reasigna ítems de políticas (`SHOP_POLICY`).
+  - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
+  - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
+  - Permisos `read_locations` y `read_markets`.
   - `< /dev/null` en los comandos del CLI.
 
 ---
@@ -366,6 +386,12 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 - **Pendientes del usuario:** desactivar descuentos viejos y cambiar el nombre de la tienda.
 
 ---
+
+### Caso 3: tienda de calzado (clon idéntico)
+- Origen en GBP → destino recién creado en otra moneda (se cambió a GBP antes de cargar productos).
+- 2 productos (uno con 6 colores × 9 talles, una foto por color y stock por variante), 1 colección, 2 páginas, 2 menús, 6 políticas, ~180 imágenes. Sin metacampos ni videos. Dos apps con app embeds en el tema.
+- **Problemas:** faltaba la foto de cada variante en la consulta, una imagen AVIF quedó como PNG, el footer falló por el ítem de la política de privacidad y faltaba el permiso `read_markets`.
+- La comparación dio NINGUNA en la primera pasada. Quedó para el usuario: nombre de la tienda, mercados, instalar las apps y publicar.
 
 ## Estructura del repo
 ```

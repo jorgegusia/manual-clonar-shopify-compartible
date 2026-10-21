@@ -1,6 +1,7 @@
 """Compara ORIGEN vs DESTINO (productos y colecciones exportados con queries/q_prod.graphql y q_col.graphql).
 Uso: python3 -I compare.py <productos-origen> <productos-destino> <colecciones-origen> <colecciones-destino> [mapa-archivos.json]
-Revisa: handles faltantes/sobrantes, título, plantilla, estado, variantes, precios, cantidad de imágenes,
+Revisa: handles faltantes/sobrantes, título, plantilla, estado, variantes, precios, stock, foto de cada variante,
+vendor, tipo, etiquetas, descripción, cantidad de imágenes,
 metacampos (claves y valores; con el mapa compara también file_reference) y productos/orden de cada colección.
 El objetivo del loop es que imprima "NINGUNA" en ambos.
 """
@@ -42,6 +43,13 @@ def dec(x):
     return Decimal(x) if x else None
 
 
+def img_pos(kids, v):
+    """Posición (1, 2...) de la foto de la variante dentro de las fotos del producto. None si no tiene."""
+    url = ((v.get("image") or {}).get("url") or "").split("?")[0]
+    urls = [((x.get("preview") or {}).get("image") or {}).get("url", "").split("?")[0] for x in kids if "mediaContentType" in x]
+    return urls.index(url) + 1 if url in urls else None
+
+
 for kind, a, b in (("Product", sys.argv[1], sys.argv[2]), ("Collection", sys.argv[3], sys.argv[4])):
     O, D = load(a, kind), load(b, kind)
     print(f"== {kind}: origen {len(O)} destino {len(D)}")
@@ -60,6 +68,11 @@ for kind, a, b in (("Product", sys.argv[1], sys.argv[2]), ("Collection", sys.arg
             chk["precios"] = ([(dec(ov[k]["price"]), dec(ov[k]["compareAtPrice"])) for k in sorted(ov) if k in dv],
                               [(dec(dv[k]["price"]), dec(dv[k]["compareAtPrice"])) for k in sorted(ov) if k in dv])
             chk["imagenes"] = (sum(1 for x in ok if "mediaContentType" in x), sum(1 for x in dk if "mediaContentType" in x))
+            chk["fotos_variantes"] = ([img_pos(ok, ov[k]) for k in sorted(ov) if k in dv], [img_pos(dk, dv[k]) for k in sorted(ov) if k in dv])
+            chk["stock"] = ([(ov[k]["inventoryPolicy"], ov[k].get("inventoryQuantity")) for k in sorted(ov) if k in dv],
+                            [(dv[k]["inventoryPolicy"], dv[k].get("inventoryQuantity")) for k in sorted(ov) if k in dv])
+            for f in ("vendor", "productType", "tags", "descriptionHtml"):
+                chk[f] = (o.get(f), d.get(f))
             om = {(x["namespace"], x["key"]): mf_value(x, True) for x in ok if "key" in x}
             dm = {(x["namespace"], x["key"]): mf_value(x, False) for x in dk if "key" in x}
             chk["metacampos"] = (om, dm)

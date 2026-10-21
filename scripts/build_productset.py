@@ -1,22 +1,30 @@
 """Convierte el bulk export de productos del ORIGEN en JSONL de productSet para el DESTINO.
-Uso: python3 -I build_productset.py <productos-origen.jsonl> <salida.jsonl> [--map mapa-archivos.json] [handle ...]
+Uso: python3 -I build_productset.py <productos-origen.jsonl> <salida.jsonl> [--map mapa-archivos.json] [--location gid://shopify/Location/N] [handle ...]
 - Sin handles: todos los productos. Con handles: solo esos (ej. los que fallaron en Matrixify).
 - --map: {id_archivo_origen: id_archivo_destino}. Reapunta metacampos file_reference / list.file_reference.
   Sin el mapa, esos metacampos quedarían apuntando a archivos del origen y Shopify los rechaza.
+- --location: ubicación del DESTINO donde cargar el stock (inventoryQuantity del origen). Sin ella no se carga stock.
+- La foto de cada variante (ej. una por color) viaja si el export trae `image { url }` en las variantes.
 """
 import json
 import sys
 
 args = sys.argv[1:]
 src, dst = args[0], args[1]
-fmap, only = {}, set()
+fmap, only, location = {}, set(), None
 rest = args[2:]
 while rest:
     a = rest.pop(0)
     if a == "--map":
         fmap = json.load(open(rest.pop(0)))
+    elif a == "--location":
+        location = rest.pop(0)
     else:
         only.add(a)
+
+
+def path(url):
+    return (url or "").split("?")[0]
 
 products, order = {}, []
 for line in open(src):
@@ -76,6 +84,12 @@ with open(dst, "w") as out:
             for k in ("compareAtPrice", "sku", "barcode"):
                 if v.get(k):
                     var[k] = v[k]
+            img = path((v.get("image") or {}).get("url"))
+            same = [f for f in inp["files"] if path(f["originalSource"]) == img]
+            if img and same:
+                var["file"] = same[0]
+            if location and it.get("tracked") and v.get("inventoryQuantity") is not None:
+                var["inventoryQuantities"] = [{"locationId": location, "name": "available", "quantity": v["inventoryQuantity"]}]
             inp["variants"].append(var)
         out.write(json.dumps({"input": inp}, ensure_ascii=False) + "\n")
 print("productos:", len(only) if only else len(order), "| referencias de archivo sin mapear:", unmapped)

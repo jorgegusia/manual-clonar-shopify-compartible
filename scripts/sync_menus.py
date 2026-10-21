@@ -1,4 +1,4 @@
-"""Copia menús del ORIGEN al DESTINO reasignando cada ítem COLLECTION/PRODUCT/PAGE al recurso del destino
+"""Copia menús del ORIGEN al DESTINO reasignando cada ítem COLLECTION/PRODUCT/PAGE/SHOP_POLICY al recurso del destino
 por handle (sacado de la URL del ítem). Los que no existen quedan como link HTTP relativo (y se avisa).
 Uso: python3 -I sync_menus.py <tienda> <menus-origen.json> <handles separados por coma>
 Existentes (main-menu, footer, etc.) -> menuUpdate (reemplaza todos los ítems); nuevos -> menuCreate.
@@ -40,7 +40,9 @@ def all_ids(field):
 
 
 ids = {"COLLECTION": all_ids("collections"), "PRODUCT": all_ids("products"), "PAGE": all_ids("pages")}
-prefix = {"COLLECTION": "/collections/", "PRODUCT": "/products/", "PAGE": "/pages/"}
+pol = gql("{ shop{ shopPolicies{ id type } } }")["shop"]["shopPolicies"]
+ids["SHOP_POLICY"] = {p["type"].lower().replace("_", "-"): p["id"] for p in pol}  # /policies/privacy-policy -> PRIVACY_POLICY
+prefix = {"COLLECTION": "/collections/", "PRODUCT": "/products/", "PAGE": "/pages/", "SHOP_POLICY": "/policies/"}
 problems = []
 
 

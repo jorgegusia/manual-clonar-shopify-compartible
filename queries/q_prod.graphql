@@ -7,7 +7,7 @@
         options { name values }
         metafields { edges { node { namespace key type value } } }
         media { edges { node { mediaContentType alt preview { image { url } } } } }
-        variants { edges { node { id title sku barcode price compareAtPrice taxable inventoryPolicy inventoryQuantity selectedOptions { name value } inventoryItem { tracked requiresShipping measurement { weight { unit value } } } } } }
+        variants { edges { node { id title image { url } sku barcode price compareAtPrice taxable inventoryPolicy inventoryQuantity selectedOptions { name value } inventoryItem { tracked requiresShipping measurement { weight { unit value } } } } } }
       }
     }
   }
