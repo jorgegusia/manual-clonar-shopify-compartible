@@ -14,8 +14,9 @@ import sys
 
 path, keypath, value = sys.argv[1], sys.argv[2], json.loads(sys.argv[3])
 raw = open(path).read()
-m = re.match(r"\s*(/\*.*?\*/)\s*", raw, re.S)
-head = m.group(1) + "\n" if m else ""
+# Puede haber más de un comentario /* */ arriba (el de Shopify y uno propio): se conservan todos.
+m = re.match(r"\s*((?:/\*.*?\*/\s*)+)", raw, re.S)
+head = m.group(1).rstrip() + "\n" if m else ""
 data = json.loads(raw[m.end():] if m else raw)
 node = data
 keys = keypath.split(".")
