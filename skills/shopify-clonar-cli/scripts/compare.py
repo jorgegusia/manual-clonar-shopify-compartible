@@ -2,7 +2,8 @@
 Uso: python3 -I compare.py <productos-origen> <productos-destino> <colecciones-origen> <colecciones-destino> [mapa-archivos.json]
 Revisa: handles faltantes/sobrantes, título, plantilla, estado, variantes, precios, stock, foto de cada variante,
 vendor, tipo, etiquetas, descripción, cantidad de imágenes,
-metacampos (claves y valores; con el mapa compara también file_reference) y productos/orden de cada colección.
+metacampos (claves y valores; con el mapa compara también file_reference) y productos/orden de cada colección
+(en las automáticas que no son de orden manual solo compara qué productos tiene: el orden lo calcula Shopify).
 El objetivo del loop es que imprima "NINGUNA" en ambos.
 """
 import json
@@ -78,6 +79,8 @@ for kind, a, b in (("Product", sys.argv[1], sys.argv[2]), ("Collection", sys.arg
             chk["metacampos"] = (om, dm)
         else:
             chk["productos"] = ([x["handle"] for x in ok], [x["handle"] for x in dk])
+            if o.get("ruleSet") and o.get("sortOrder") != "MANUAL":  # automática: el orden lo calcula Shopify
+                chk["productos"] = tuple(sorted(v) for v in chk["productos"])
             chk["reglas"] = (json.dumps(o.get("ruleSet"), sort_keys=True), json.dumps(d.get("ruleSet"), sort_keys=True))
         for k, (x, y) in chk.items():
             if x != y:

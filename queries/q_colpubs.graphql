@@ -1,0 +1,1 @@
+{ collections { edges { node { id handle resourcePublicationsV2 { edges { node { isPublished publication { name } } } } } } } }

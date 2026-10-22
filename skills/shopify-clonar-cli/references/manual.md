@@ -134,7 +134,7 @@ Políticas públicas para comparar: `/policies/refund-policy`, `privacy-policy`,
 - **Metacampos de tipo `file_reference` / `list.file_reference`:** esos archivos tienen que existir en el destino **antes** que los productos. Ver 5.3.
 - **Definiciones de metacampos** y si las colecciones automáticas usan reglas por metacampo.
 - **Videos** del tema e **imágenes que faltan** incluso en el origen.
-- Descuentos, redirecciones y canales de venta.
+- Descuentos, redirecciones y canales de venta. Canales de cada producto y colección: `queries/q_pubs.graphql` y `queries/q_colpubs.graphql` (bulk).
 - Comparación con los archivos locales del usuario, si los dio (tienda y fecha).
 
 ---
@@ -241,7 +241,7 @@ Re-exportar el destino (3.3 con `-s DESTINO`) y correr:
 ```bash
 python3 -I scripts/compare.py datos/productos-origen.jsonl datos/productos-destino.jsonl datos/colecciones-origen.jsonl datos/colecciones-destino.jsonl datos/mapa-archivos.json
 ```
-Tiene que decir **NINGUNA** en productos y en colecciones. Compara título, estado, plantilla, variantes, precios, imágenes, metacampos (incluido `file_reference` mapeado) y los productos y su orden en cada colección.
+Tiene que decir **NINGUNA** en productos y en colecciones. En las colecciones **automáticas** que no son de orden manual (ej. "más relevantes") solo compara qué productos tienen: ese orden lo calcula Shopify y no se puede fijar. Compara título, estado, plantilla, variantes, precios, imágenes, metacampos (incluido `file_reference` mapeado) y los productos y su orden en cada colección.
 
 ### 6.2 Precios (si la moneda estuvo mal)
 ```bash
@@ -257,7 +257,9 @@ Volver a correr `build_prices.py`: tiene que dar 0.
   ```bash
   curl -s -c cj -b cj -L -o destino.html "https://DESTINO.myshopify.com/products/HANDLE?preview_theme_id=ID"
   ```
-  Sacar las etiquetas y hacer `diff` con la misma página del origen. Lo típico que queda: el nombre de la tienda ("My Store") y el **selector de países** si los mercados del destino no son los mismos que los del origen.
+  Sacar las etiquetas y hacer `diff` con la misma página del origen.
+  - Si curl recibe *"Verifying your connection..."* (anti-bots de Shopify, aun con user-agent de navegador), comparar con el navegador integrado: `fetch()` de cada página desde la propia tienda, sacar `innerText` y comparar cantidad de líneas y textos clave (copyright, selector de países, "Taxes included").
+  - **"Taxes included"** en el origen y no en el destino = el destino no tiene los impuestos incluidos en el precio. Lo activa el usuario en Settings → Taxes and duties (o en el mercado). Lo típico que queda: el nombre de la tienda ("My Store") y el **selector de países** si los mercados del destino no son los mismos que los del origen.
 
 ---
 
@@ -334,6 +336,8 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Una imagen del tema `.avif` aparece en Files del destino como `.png` | Shopify convierte AVIF al crear el archivo | Cambiar la referencia `shopify://shop_images/X.avif` → `X.png` en el JSON del tema del destino |
 | Menú: `Couldn't create link "Privacy Policy", shop_policy not found` | La política no existe todavía en el destino | Cargar las políticas antes; `sync_menus.py` reasigna `SHOP_POLICY` por tipo |
 | Al elegir un color no cambia la foto | Las variantes se crearon sin `file` | Exportar con `image { url }` en variantes y `build_productset.py` (asigna la foto) |
+| curl devuelve "Verifying your connection..." | Anti-bots de Shopify | Comparar desde el navegador integrado (`fetch` + `innerText`) |
+| compare.py marca orden distinto en una colección automática | Shopify calcula el orden ("más relevantes") | Ya contemplado: en automáticas no manuales compara solo el conjunto |
 | `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
 
 ---
@@ -359,6 +363,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
   - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
   - Permisos `read_locations` y `read_markets`.
+- **v4.2 (cuarto clon, 1.163 productos):** colecciones automáticas comparadas sin orden, consultas de canales (`q_pubs` / `q_colpubs`), comparación visible por navegador cuando hay anti-bots, "Taxes included".
   - `< /dev/null` en los comandos del CLI.
 
 ---
@@ -390,6 +395,11 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 - 2 productos (uno con 6 colores × 9 talles, una foto por color y stock por variante), 1 colección, 2 páginas, 2 menús, 6 políticas, ~180 imágenes. Sin metacampos ni videos. Dos apps con app embeds en el tema.
 - **Problemas:** faltaba la foto de cada variante en la consulta, una imagen AVIF quedó como PNG, el footer falló por el ítem de la política de privacidad y faltaba el permiso `read_markets`.
 - La comparación dio NINGUNA en la primera pasada. Quedó para el usuario: nombre de la tienda, mercados, instalar las apps y publicar.
+
+### Caso 4: tienda grande de cartas coleccionables (clon idéntico)
+- Origen y destino en GBP; destino vacío. ~1.150 productos, ~3.700 variantes, ~2.200 fotos, 2 definiciones de metacampos, 70 colecciones (1 automática), 7 páginas, 9 menús. Sin apps ni videos.
+- productSet en bulk sin errores en una pasada. La sincronización de colecciones tarda más de 10 minutos: correrla en segundo plano.
+- La comparación dio NINGUNA tras contemplar el orden de las colecciones automáticas. Quedó para el usuario: nombre, mercados, impuestos incluidos y publicar.
 
 ## Estructura del repo
 ```
