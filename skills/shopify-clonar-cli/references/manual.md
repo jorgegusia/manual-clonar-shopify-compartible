@@ -52,7 +52,7 @@ Completá `plantilla-datos-tienda.md` (está en este repo) y pasásela a Claude 
 6. **Loop:** subir, re-exportar el destino, comparar (`compare.py`), corregir y repetir hasta que diga **NINGUNA**.
 7. **Carpeta de trabajo:** la que indique el usuario, con subcarpetas `tema/`, `imagenes-tema/`, `videos-tema/`, `datos/` y `politicas/`. Los scripts van aparte. No pisar los archivos originales del usuario.
 8. **Acciones públicas o irreversibles solo con OK explícito:** publicar el tema, borrar o desactivar descuentos, borrar cualquier cosa, quitar la contraseña. Si el clasificador de permisos de Claude Code bloquea algo (por ejemplo, tocar descuentos), **no buscarle la vuelta**: explicarle al usuario cómo hacerlo en el admin.
-9. **`ETIMEDOUT` en `store bulk execute` con mutaciones: NO reintentar a ciegas.** El corte puede ser solo del CLI y la operación seguir corriendo en Shopify. Antes de reintentar: `query{ currentBulkOperation(type:MUTATION){ status objectCount createdAt } }`. Si está `RUNNING` o `COMPLETED` con la cantidad esperada, esperar o seguir; reintentar solo si la última operación no es la tuya. Reintentar un productSet creó 1.413 productos duplicados (handles con sufijo).
+9. **`ETIMEDOUT` en `store bulk execute` con mutaciones: NO reintentar a ciegas.** El corte puede ser solo del CLI y la operación seguir corriendo en Shopify. Antes de reintentar: `query{ currentBulkOperation(type:MUTATION){ status objectCount createdAt } }`. Si está `RUNNING` o `COMPLETED` con la cantidad esperada, esperar o seguir; reintentar solo si la última operación no es la tuya. Reintentar un productSet creó 1.413 productos duplicados (handles con sufijo). **Usar `scripts/bulk_mutation.py`** para todos los bulks con mutaciones: hace ese chequeo solo (espera la operación en curso y baja su resultado, o reintenta si Shopify no la recibió).
 10. **Comandos del CLI desde Bash:** agregar siempre `< /dev/null`, porque si no a veces se cuelgan esperando input. En macOS no existe `timeout`. En zsh una variable con varios IDs **no** se separa sola en un `for`: listar los IDs explícitos o usar Python.
 11. **Logins (CLI y `store auth`):** correrlos en una pestaña de Terminal **visible**. Pegarle al usuario en el chat la **URL completa y el código** (usa varios perfiles de navegador). `store auth` no imprime el link: usar `scripts/capturar-link-auth.sh` desde el principio. Avisar que se vencen en pocos minutos. Si son dos autorizaciones, pedirlas **de a una**.
 12. **Responder en español, con lenguaje simple.** El usuario no es técnico: explicar qué significa cada decisión ("igual al origen" = qué se borra o cambia).
@@ -206,7 +206,7 @@ Tiene que terminar sin `errors`.
 **Opción A (CLI, recomendada):**
 ```bash
 python3 -I scripts/build_productset.py datos/productos-origen.jsonl datos/destino-productos.jsonl --map datos/mapa-archivos.json --location gid://shopify/Location/ID_DESTINO
-shopify store bulk execute -s DESTINO --allow-mutations --variable-file datos/destino-productos.jsonl --watch --output-file datos/productset-result.jsonl -q 'mutation($input: ProductSetInput!){ productSet(input:$input){ product{ id handle } userErrors{ field message code } } }'
+python3 -I scripts/bulk_mutation.py DESTINO datos/destino-productos.jsonl datos/productset-result.jsonl 'mutation($input: ProductSetInput!){ productSet(input:$input){ product{ id handle } userErrors{ field message code } } }'
 ```
 - **Foto de cada variante** (ej. una por color): `q_prod.graphql` trae `image { url }` de cada variante y `build_productset.py` la asigna con `file` (la misma URL que en `files`). Sin eso, al elegir un color no cambia la foto.
 - **Stock:** con `--location` (ID de la ubicación del destino, `locations(first:5){nodes{id name}}`) se carga el `inventoryQuantity` del origen en las variantes con seguimiento de stock.
@@ -365,6 +365,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
   - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
   - Permisos `read_locations` y `read_markets`.
+- **v4.4 (repetición del quinto clon):** `bulk_mutation.py` (2.646 productos al primer intento, sin duplicados). Un clon repetido del mismo origen reutiliza `tema-destino/` y los scripts; solo hace falta autorizar el destino.
 - **v4.3 (quinto clon, 2.646 productos y 168 colecciones automáticas):** no reintentar bulks con `ETIMEDOUT` sin mirar `currentBulkOperation`; `sync_collections.py` crea automáticas; `sync_discounts.py` + `q_discounts.graphql`; moneda distinta a pedido del usuario (mismo número, sin convertir) y ajustes de montos en el tema.
 - **v4.2 (cuarto clon, 1.163 productos):** colecciones automáticas comparadas sin orden, consultas de canales (`q_pubs` / `q_colpubs`), comparación visible por navegador cuando hay anti-bots, "Taxes included".
   - `< /dev/null` en los comandos del CLI.
@@ -422,6 +423,7 @@ scripts/
   build_productset.py         productos del origen → productSet (con --map para file_reference)
   sync_collections.py         colecciones: crear faltantes (manuales y automáticas) y dejar los mismos productos en el mismo orden
   sync_discounts.py           descuentos Basic (automáticos y por código) del origen al destino
+  bulk_mutation.py            bulk con mutaciones seguro ante ETIMEDOUT (no duplica)
   sync_menus.py               menús con resourceId reasignado por handle
   build_prices.py             corregir precios que difieren
   compare.py                  comparación completa origen vs destino (objetivo: NINGUNA)

@@ -46,7 +46,7 @@ Ficha de datos para completar con el usuario: `references/plantilla-datos-tienda
 
 ## Reglas que evitan los errores ya vividos
 - **Nunca crear a ciegas:** comparar primero. Una diferencia en el destino puede venir de una importación vieja de otra tienda, no de una edición a mano: averiguar el origen antes de pisarla o respetarla.
-- **`ETIMEDOUT` en un `bulk execute` con mutaciones: NO reintentar sin mirar `currentBulkOperation(type:MUTATION)`.** La operación puede seguir corriendo en Shopify y el reintento duplica productos.
+- **`ETIMEDOUT` en un `bulk execute` con mutaciones: NO reintentar sin mirar `currentBulkOperation(type:MUTATION)`.** La operación puede seguir corriendo en Shopify y el reintento duplica productos. Usar `scripts/bulk_mutation.py`, que hace ese chequeo solo.
 - Comandos del CLI desde Bash con `< /dev/null`. En macOS no hay `timeout`. En zsh, no iterar sobre variables con varios IDs.
 - `store auth` no imprime el link: si el usuario no lo ve o se vence, usar `scripts/capturar-link-auth.sh` y pasarle el link. Autorizaciones **de a una**, avisando que vencen en minutos.
 - Errores 401 en `theme ...` después de re-autorizar: `shopify auth logout` + login.
