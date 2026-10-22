@@ -1,0 +1,23 @@
+query {
+  discountNodes(first: 50) {
+    nodes {
+      id
+      discount {
+        __typename
+        ... on DiscountAutomaticBasic {
+          title status startsAt endsAt
+          combinesWith { orderDiscounts productDiscounts shippingDiscounts }
+          minimumRequirement { __typename ... on DiscountMinimumQuantity { greaterThanOrEqualToQuantity } ... on DiscountMinimumSubtotal { greaterThanOrEqualToSubtotal { amount currencyCode } } }
+          customerGets { appliesOnOneTimePurchase appliesOnSubscription value { __typename ... on DiscountPercentage { percentage } ... on DiscountAmount { amount { amount } appliesOnEachItem } } items { __typename ... on AllDiscountItems { allItems } ... on DiscountCollections { collections(first: 50) { nodes { handle } } } ... on DiscountProducts { products(first: 50) { nodes { handle } } } } }
+        }
+        ... on DiscountCodeBasic {
+          title status startsAt endsAt usageLimit appliesOncePerCustomer
+          codes(first: 10) { nodes { code } }
+          combinesWith { orderDiscounts productDiscounts shippingDiscounts }
+          minimumRequirement { __typename ... on DiscountMinimumQuantity { greaterThanOrEqualToQuantity } ... on DiscountMinimumSubtotal { greaterThanOrEqualToSubtotal { amount currencyCode } } }
+          customerGets { appliesOnOneTimePurchase appliesOnSubscription value { __typename ... on DiscountPercentage { percentage } ... on DiscountAmount { amount { amount } appliesOnEachItem } } items { __typename ... on AllDiscountItems { allItems } ... on DiscountCollections { collections(first: 50) { nodes { handle } } } ... on DiscountProducts { products(first: 50) { nodes { handle } } } } }
+        }
+      }
+    }
+  }
+}

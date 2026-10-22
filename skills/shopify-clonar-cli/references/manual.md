@@ -52,9 +52,10 @@ Completá `plantilla-datos-tienda.md` (está en este repo) y pasásela a Claude 
 6. **Loop:** subir, re-exportar el destino, comparar (`compare.py`), corregir y repetir hasta que diga **NINGUNA**.
 7. **Carpeta de trabajo:** la que indique el usuario, con subcarpetas `tema/`, `imagenes-tema/`, `videos-tema/`, `datos/` y `politicas/`. Los scripts van aparte. No pisar los archivos originales del usuario.
 8. **Acciones públicas o irreversibles solo con OK explícito:** publicar el tema, borrar o desactivar descuentos, borrar cualquier cosa, quitar la contraseña. Si el clasificador de permisos de Claude Code bloquea algo (por ejemplo, tocar descuentos), **no buscarle la vuelta**: explicarle al usuario cómo hacerlo en el admin.
-9. **Comandos del CLI desde Bash:** agregar siempre `< /dev/null`, porque si no a veces se cuelgan esperando input. En macOS no existe `timeout`. En zsh una variable con varios IDs **no** se separa sola en un `for`: listar los IDs explícitos o usar Python.
-10. **Logins (CLI y `store auth`):** correrlos en una pestaña de Terminal **visible**. Pegarle al usuario en el chat la **URL completa y el código** (usa varios perfiles de navegador). `store auth` no imprime el link: usar `scripts/capturar-link-auth.sh` desde el principio. Avisar que se vencen en pocos minutos. Si son dos autorizaciones, pedirlas **de a una**.
-11. **Responder en español, con lenguaje simple.** El usuario no es técnico: explicar qué significa cada decisión ("igual al origen" = qué se borra o cambia).
+9. **`ETIMEDOUT` en `store bulk execute` con mutaciones: NO reintentar a ciegas.** El corte puede ser solo del CLI y la operación seguir corriendo en Shopify. Antes de reintentar: `query{ currentBulkOperation(type:MUTATION){ status objectCount createdAt } }`. Si está `RUNNING` o `COMPLETED` con la cantidad esperada, esperar o seguir; reintentar solo si la última operación no es la tuya. Reintentar un productSet creó 1.413 productos duplicados (handles con sufijo).
+10. **Comandos del CLI desde Bash:** agregar siempre `< /dev/null`, porque si no a veces se cuelgan esperando input. En macOS no existe `timeout`. En zsh una variable con varios IDs **no** se separa sola en un `for`: listar los IDs explícitos o usar Python.
+11. **Logins (CLI y `store auth`):** correrlos en una pestaña de Terminal **visible**. Pegarle al usuario en el chat la **URL completa y el código** (usa varios perfiles de navegador). `store auth` no imprime el link: usar `scripts/capturar-link-auth.sh` desde el principio. Avisar que se vencen en pocos minutos. Si son dos autorizaciones, pedirlas **de a una**.
+12. **Responder en español, con lenguaje simple.** El usuario no es técnico: explicar qué significa cada decisión ("igual al origen" = qué se borra o cambia).
 
 ---
 
@@ -218,7 +219,7 @@ shopify store bulk execute -s DESTINO --allow-mutations --variable-file datos/de
 ```bash
 python3 -I scripts/sync_collections.py DESTINO datos/colecciones-origen.jsonl datos/colecciones-destino.jsonl datos/mapa-productos.json <publicationId-Online-Store>
 ```
-Crea las manuales que faltan (y las publica) y deja los mismos productos **en el mismo orden**. Las automáticas se crean con `collectionCreate` + `ruleSet`, con `conditionObjectId` = ID de la definición del metacampo **en el destino**.
+Crea las manuales que faltan (y las publica) y deja los mismos productos **en el mismo orden**. También crea las **automáticas** que faltan con sus mismas reglas (los productos entran solos). Las que tienen reglas por metacampo las avisa para crearlas a mano. Tarda ~13 s por colección: con muchas, correrlo en segundo plano. Las automáticas se crean con `collectionCreate` + `ruleSet`, con `conditionObjectId` = ID de la definición del metacampo **en el destino**.
 
 ### 5.7 Páginas, menús, políticas, redirecciones
 - **Páginas:** comparar `title`, `body`, `isPublished` y `templateSuffix`. Las faltantes con `pageCreate` y las vacías con `pageUpdate`.
@@ -230,7 +231,7 @@ Crea las manuales que faltan (y las publica) y deja los mismos productos **en el
   - La **de privacidad** falla si está en gestión automática (*"Automatic management for Privacy Policy must be turned off"*). La desactiva el usuario en Configuración → Políticas → Privacy policy.
   - "Purchase options cancellation policy — Required" solo aplica si se venden suscripciones o preventas.
 - **Redirecciones:** `urlRedirectCreate` para las que falten.
-- **Descuentos:** comparar con el origen. Los que vinieron de importaciones viejas se **desactivan**, y lo hace el usuario si el clasificador lo bloquea. Ojo con los **automáticos**: aplican a todas las compras sin código.
+- **Descuentos:** exportarlos con `queries/q_discounts.graphql` y copiarlos con `python3 -I scripts/sync_discounts.py DESTINO datos/descuentos-origen.json` (reasigna colecciones y productos por handle; cargar después de las colecciones). Comparar con el origen. Los que vinieron de importaciones viejas se **desactivan**, y lo hace el usuario si el clasificador lo bloquea. Ojo con los **automáticos**: aplican a todas las compras sin código.
 
 ---
 
@@ -338,6 +339,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Al elegir un color no cambia la foto | Las variantes se crearon sin `file` | Exportar con `image { url }` en variantes y `build_productset.py` (asigna la foto) |
 | curl devuelve "Verifying your connection..." | Anti-bots de Shopify | Comparar desde el navegador integrado (`fetch` + `innerText`) |
 | compare.py marca orden distinto en una colección automática | Shopify calcula el orden ("más relevantes") | Ya contemplado: en automáticas no manuales compara solo el conjunto |
+| Productos duplicados con handle `-1`, `-11`… | Se reintentó un bulk que dio `ETIMEDOUT` pero ya corría en Shopify | Ver `currentBulkOperation` antes de reintentar. Si ya pasó: listar los que no están en el origen y borrarlos (bulk `productDelete`, con OK) |
 | `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
 
 ---
@@ -363,6 +365,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
   - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
   - Permisos `read_locations` y `read_markets`.
+- **v4.3 (quinto clon, 2.646 productos y 168 colecciones automáticas):** no reintentar bulks con `ETIMEDOUT` sin mirar `currentBulkOperation`; `sync_collections.py` crea automáticas; `sync_discounts.py` + `q_discounts.graphql`; moneda distinta a pedido del usuario (mismo número, sin convertir) y ajustes de montos en el tema.
 - **v4.2 (cuarto clon, 1.163 productos):** colecciones automáticas comparadas sin orden, consultas de canales (`q_pubs` / `q_colpubs`), comparación visible por navegador cuando hay anti-bots, "Taxes included".
   - `< /dev/null` en los comandos del CLI.
 
@@ -401,6 +404,11 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 - productSet en bulk sin errores en una pasada. La sincronización de colecciones tarda más de 10 minutos: correrla en segundo plano.
 - La comparación dio NINGUNA tras contemplar el orden de las colecciones automáticas. Quedó para el usuario: nombre, mercados, impuestos incluidos y publicar.
 
+### Caso 5: tienda grande de coleccionables con moneda distinta (clon idéntico)
+- Origen en EUR → destino en GBP; el usuario pidió **el mismo número** de precio sin convertir. ~2.600 productos, ~8.000 fotos, ~170 colecciones casi todas automáticas por etiqueta, 12 páginas, 5 descuentos.
+- Montos en EUR dentro del tema (meta de la barra del carrito y un texto con €): se ajustaron a GBP.
+- La red cortaba seguido: reintentar una carga masiva que en realidad seguía corriendo duplicó ~1.400 productos (se borraron con OK). Regla nueva: revisar `currentBulkOperation` antes de reintentar.
+
 ## Estructura del repo
 ```
 README.md                     este manual
@@ -412,7 +420,8 @@ scripts/
   upload_images.py            subir imágenes por URL (fileCreate) + mapa de IDs
   upload_videos.py            subir videos o imágenes locales (staged upload)
   build_productset.py         productos del origen → productSet (con --map para file_reference)
-  sync_collections.py         colecciones: crear faltantes y dejar los mismos productos en el mismo orden
+  sync_collections.py         colecciones: crear faltantes (manuales y automáticas) y dejar los mismos productos en el mismo orden
+  sync_discounts.py           descuentos Basic (automáticos y por código) del origen al destino
   sync_menus.py               menús con resourceId reasignado por handle
   build_prices.py             corregir precios que difieren
   compare.py                  comparación completa origen vs destino (objetivo: NINGUNA)
