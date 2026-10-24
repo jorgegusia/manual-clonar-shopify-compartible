@@ -348,6 +348,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | curl devuelve "Verifying your connection..." | Anti-bots de Shopify | Comparar desde el navegador integrado (`fetch` + `innerText`) |
 | compare.py marca orden distinto en una colección automática | Shopify calcula el orden ("más relevantes") | Ya contemplado: en automáticas no manuales compara solo el conjunto |
 | Productos duplicados con handle `-1`, `-11`… | Se reintentó un bulk que dio `ETIMEDOUT` pero ya corría en Shopify | Ver `currentBulkOperation` antes de reintentar. Si ya pasó: listar los que no están en el origen y borrarlos (bulk `productDelete`, con OK) |
+| `theme push --json` "sin errores" pero el cambio no aparece | La salida trae `theme.errors` (ej. `name` del schema de una sección con más de 25 caracteres) y ese archivo no se subió | Leer siempre `theme.errors` del JSON; verificar con `theme pull` + `diff -rq` |
 | `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
 
 ---
