@@ -350,6 +350,10 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Productos duplicados con handle `-1`, `-11`… | Se reintentó un bulk que dio `ETIMEDOUT` pero ya corría en Shopify | Ver `currentBulkOperation` antes de reintentar. Si ya pasó: listar los que no están en el origen y borrarlos (bulk `productDelete`, con OK) |
 | `theme push --json` "sin errores" pero el cambio no aparece | La salida trae `theme.errors` (ej. `name` del schema de una sección con más de 25 caracteres) y ese archivo no se subió | Leer siempre `theme.errors` del JSON; verificar con `theme pull` + `diff -rq` |
 | `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
+| Vista previa redirige a `/password` en el navegador integrado | Tienda con contraseña; el navegador integrado no tiene la sesión del admin | El usuario escribe la contraseña en el **panel del navegador de la app** (no en su navegador). Claude no la escribe ni la pide en el chat |
+| Capturas del navegador integrado quedan "congeladas" al hacer scroll | Con el panel oculto la página no se repinta | Navegar a `URL#id-de-la-sección` (cada navegación da una captura nueva). En computadora emular ~1100 px de ancho: más ancho se achica y se corta |
+| Tema con textos en inglés ("Add to cart") aunque la tienda es de Paraguay | El idioma principal de la tienda es inglés | El usuario cambia el idioma principal (Settings → Languages). Mientras tanto: copiar `locales/es.json` sobre `locales/en.default.json` |
+| En celular la página se sale de costado | Grillas `1fr 1fr` con textos `nowrap`: la columna no se achica | Usar `minmax(0,1fr)`. Medir con `document.documentElement.scrollWidth` contra `clientWidth` |
 
 ---
 
@@ -374,6 +378,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
   - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
   - Permisos `read_locations` y `read_markets`.
+- **v4.5 (tienda desde cero, sin origen):** análisis de referencias no Shopify + Instagram, tema Dawn limpio con secciones propias, fotos de ejemplo con Nano Banana subidas a Files y reutilizadas en `productSet` con `files: [{id}]`, colecciones automáticas por etiqueta, revisión con contraseña e idioma principal en inglés.
 - **v4.4 (repetición del quinto clon):** `bulk_mutation.py` (2.646 productos al primer intento, sin duplicados). Un clon repetido del mismo origen reutiliza `tema-destino/` y los scripts; solo hace falta autorizar el destino.
 - **v4.3 (quinto clon, 2.646 productos y 168 colecciones automáticas):** no reintentar bulks con `ETIMEDOUT` sin mirar `currentBulkOperation`; `sync_collections.py` crea automáticas; `sync_discounts.py` + `q_discounts.graphql`; moneda distinta a pedido del usuario (mismo número, sin convertir) y ajustes de montos en el tema.
 - **v4.2 (cuarto clon, 1.163 productos):** colecciones automáticas comparadas sin orden, consultas de canales (`q_pubs` / `q_colpubs`), comparación visible por navegador cuando hay anti-bots, "Taxes included".
