@@ -58,5 +58,13 @@ Ficha de datos para completar con el usuario: `references/plantilla-datos-tienda
 - No se puede por API: nombre de la tienda, gestión automática de la política de privacidad. Los hace el usuario.
 - Tabla completa de errores y soluciones: `references/manual.md` §9.
 
+## Ofertas y descuentos que tienen que llegar al checkout
+Para pop-ups de oferta, "X off", "X% off", upsell antes del checkout o tiendas con **checkout externo** (uruscrm, OPS,
+primescalecommerce), usar la skill `shopify-oferta-popup`: el descuento es una **copia oculta (UNLISTED) del producto**
+con el precio rebajado, nunca un código (`sync_discounts.py` no llega a esos checkouts).
+- Al clonar una tienda que ya tiene ofertas: las copias `<handle>-offer` viajan como productos UNLISTED y el pop-up usa
+  handles, así que sigue andando. Comprobar en el destino que sigan UNLISTED y publicadas en Online Store, y volver a
+  correr `duplicar_oferta.py` si cambió la moneda o los precios.
+
 ## Modo C (híbrido), para cuando exista la skill de estilo
 Si el usuario tiene acceso a una tienda (estructura y datos) pero quiere el **estilo** de otra sin acceso: esta skill aporta los pasos 2–6 (datos, productos, colecciones, archivos) y `shopify-recrear-estilo` aporta el diseño y las imágenes generadas. La skill `shopify-tienda-maestro` decide y coordina.
