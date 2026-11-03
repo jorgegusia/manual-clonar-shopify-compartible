@@ -354,6 +354,11 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Capturas del navegador integrado quedan "congeladas" al hacer scroll | Con el panel oculto la página no se repinta | Navegar a `URL#id-de-la-sección` (cada navegación da una captura nueva). En computadora emular ~1100 px de ancho: más ancho se achica y se corta |
 | Tema con textos en inglés ("Add to cart") aunque la tienda es de Paraguay | El idioma principal de la tienda es inglés | El usuario cambia el idioma principal (Settings → Languages). Mientras tanto: copiar `locales/es.json` sobre `locales/en.default.json` |
 | En celular la página se sale de costado | Grillas `1fr 1fr` con textos `nowrap`: la columna no se achica | Usar `minmax(0,1fr)`. Medir con `document.documentElement.scrollWidth` contra `clientWidth` |
+| El origen manda el checkout a una plataforma externa (`<script src="https://uruscrm.com/checkout.js?...">` u OPS en `layout/theme.liquid`) | El script es de la cuenta de la tienda de origen | **Preguntar** antes de clonar: si se copia, las ventas del destino van a ese checkout. Por defecto sacar esa línea de `tema-destino/` |
+| Pide el link de `store auth` del origen otra vez | Puede seguir vigente la autorización de una sesión anterior | Probar primero `shopify store execute -s ORIGEN -q '{ shop { name } }'`; si responde, no pedir otro link |
+| Login del CLI: `request to https://accounts.shopify.com/oauth/token failed ... ETIMEDOUT / socket disconnected` después de aprobar | Corte de red justo al final | Repetir `shopify theme list --store ...` (código nuevo) y pasar el link otra vez |
+| Destino con textos del tema y checkout en español ("PAGAR PEDIDO", "Total estimado") y el origen en inglés | Idioma principal del destino en español | El usuario cambia el idioma principal (Settings → Languages). Revisarlo al empezar |
+| El checkout dice "Esta tienda no puede aceptar pagos en este momento" | El destino no tiene proveedor de pagos | Lo configura el usuario (Settings → Payments) o su checkout externo |
 
 ---
 
@@ -378,6 +383,7 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
   - AVIF → PNG en Files; app embeds descartados hasta instalar las apps.
   - Comparar el texto visible con la vista previa (cookies) y revisar mercados.
   - Permisos `read_locations` y `read_markets`.
+- **v4.6 (sexto clon, con ofertas y checkout externo):** checkout externo del origen se saca del clon (preguntar), reutilizar `store auth` vigente, reintentar login del CLI ante cortes de red, ofertas con copias `-offer` viajan solas (el snippet usa handles), reemplazos de datos legales con un script por cliente, idioma principal y pagos del destino.
 - **v4.5 (tienda desde cero, sin origen):** análisis de referencias no Shopify + Instagram, tema Dawn limpio con secciones propias, fotos de ejemplo con Nano Banana subidas a Files y reutilizadas en `productSet` con `files: [{id}]`, colecciones automáticas por etiqueta, revisión con contraseña e idioma principal en inglés.
 - **v4.4 (repetición del quinto clon):** `bulk_mutation.py` (2.646 productos al primer intento, sin duplicados). Un clon repetido del mismo origen reutiliza `tema-destino/` y los scripts; solo hace falta autorizar el destino.
 - **v4.3 (quinto clon, 2.646 productos y 168 colecciones automáticas):** no reintentar bulks con `ETIMEDOUT` sin mirar `currentBulkOperation`; `sync_collections.py` crea automáticas; `sync_discounts.py` + `q_discounts.graphql`; moneda distinta a pedido del usuario (mismo número, sin convertir) y ajustes de montos en el tema.
@@ -423,6 +429,12 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 - Origen en EUR → destino en GBP; el usuario pidió **el mismo número** de precio sin convertir. ~2.600 productos, ~8.000 fotos, ~170 colecciones casi todas automáticas por etiqueta, 12 páginas, 5 descuentos.
 - Montos en EUR dentro del tema (meta de la barra del carrito y un texto con €): se ajustaron a GBP.
 - La red cortaba seguido: reintentar una carga masiva que en realidad seguía corriendo duplicó ~1.400 productos (se borraron con OK). Regla nueva: revisar `currentBulkOperation` antes de reintentar.
+
+### Caso 6: clon de una tienda con ofertas y checkout externo, a otra LLC
+- Origen y destino en GBP; destino vacío. ~150 productos (incluidas las copias ocultas `-offer` de las ofertas), ~470 imágenes y 60 videos, 70 colecciones, 6 páginas, 7 menús, 1 descuento activo.
+- Misma marca, otra empresa legal: un script de reemplazos cambió empresa, dirección, teléfono y email en footer, ficha de producto, páginas y políticas.
+- El origen cargaba un checkout externo en `theme.liquid`: se sacó del clon a pedido del usuario. Las ofertas siguieron andando porque usan handles.
+- La comparación dio NINGUNA (el título de la colección `frontpage` venía en el idioma del destino). Publicado con OK y probado hasta el checkout. Pendientes del usuario: pagos e idioma principal.
 
 ## Estructura del repo
 ```
