@@ -28,7 +28,7 @@ Plantillas: `plantillas/tema/sections/eb-*.liquid` y `plantillas/politicas/*.htm
 7. **Tema** (§7): `theme duplicate` del main (Horizon) → `theme pull` → `armar_tema.py marca.json tema/` → `theme check` → push **primero `sections/eb-*.liquid`, después los 4 JSON**. Nunca editar el tema publicado.
 8. **Inglés, menús, páginas** (§8) y **políticas** (§9): `generar_politicas.py marca.json politicas/` → `shopPolicyUpdate` ×5 (o `politicas-para-copiar.html` al usuario).
 9. **Verificación** (§10): API (productos, precios GB/US iguales, imágenes READY, políticas, descuento) + capturas lado a lado con la referencia + links 200, sin español ni datos de la referencia.
-10. **Entrega** (§11): tabla de productos £/$, link de vista previa, pendientes del usuario (Payments, idioma, nombre, **PDF con Digital Downloads**, OK para publicar).
+10. **Entrega** (§11): tabla de productos £/$, link de vista previa, pendientes del usuario (Payments, nombre, **PDF con Digital Downloads**, OK para publicar).
 
 ## Imágenes: API de Google (por defecto) o Higgsfield
 - **Google (Nano Banana Pro, `gemini-3-pro-image`, 2K):** ~US$ 0,134 por imagen, sin suscripción. El usuario crea la key en `https://aistudio.google.com/apikey`, activa la **facturación** (no hay uso gratis para Pro) y la guarda en `~/.config/gemini/api_key` con el comando del manual §5. **Nunca pedir la key por chat ni guardarla en un repo.** Probar con `generar_imagenes.py --listar`.
@@ -40,4 +40,5 @@ Plantillas: `plantillas/tema/sections/eb-*.liquid` y `plantillas/politicas/*.htm
 - Comandos CLI con `< /dev/null`. Autorizaciones de a una. Nada irreversible ni público sin OK (publicar tema, quitar contraseña, borrar).
 - Prometer solo lo concreto: nada de "may cover"/"proposed"/páginas inventadas (`armar_productos.py` lo frena).
 - Nunca dejar nombre, LLC, email o teléfono de la tienda de referencia.
-- No se puede por API: nombre de la tienda, idioma predeterminado, activar Shopify Payments, subir PDF a Digital Downloads. Los hace el usuario.
+- No se puede por API: nombre de la tienda, activar Shopify Payments, subir PDF a Digital Downloads. Los hace el usuario.
+- **Idioma del sitio y del checkout sí se puede por API** (`shopLocaleEnable` + `shopLocaleUpdate` publicado + `webPresenceUpdate` con `defaultLocale`; permisos `read_locales,write_locales,write_markets`). Ver manual §9.

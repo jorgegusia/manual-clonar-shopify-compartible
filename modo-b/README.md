@@ -237,10 +237,10 @@ shopify store bulk execute -s DESTINO --allow-mutations --variable-file clientes
 - Menú `main-menu`: Home (`/`) / Our Ebooks (`/collections/all`) / Contact (`/pages/contact`) con `menuUpdate`
   (conservar los IDs de los ítems que ya existan). Menú `footer`: vacío o "Search" (las políticas ya salen solas).
 - Página Contact: título "Contact" y el formulario del tema (template `page.contact`).
-- Si el idioma principal de la tienda no es inglés: `shopLocaleEnable(locale:"en")` y publicarlo; **el usuario**
-  pone el inglés como predeterminado en Configuración → Idiomas (el banner de cookies, checkout y emails dependen de eso).
-  Mientras tanto, copiar `locales/en.default.json` a `locales/es.json` en el tema duplicado hace que los textos del
-  tema salgan en inglés.
+- Si el idioma principal de la tienda no es inglés: por API (permisos `read_locales,write_locales,write_markets`)
+  `shopLocaleEnable(locale:"en", marketWebPresenceIds:[ID])`, publicarlo con `shopLocaleUpdate` y
+  `webPresenceUpdate(id:ID, input:{defaultLocale:"en", alternateLocales:[]})`: tema, banner de cookies y checkout quedan en inglés.
+  (Probado 2026-11-03.) El usuario solo cambia el nombre de la tienda.
 
 ---
 

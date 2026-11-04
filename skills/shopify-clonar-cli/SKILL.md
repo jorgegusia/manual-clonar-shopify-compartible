@@ -56,6 +56,7 @@ Ficha de datos para completar con el usuario: `references/plantilla-datos-tienda
 - App embeds de apps que el destino no tiene se descartan en el push: re-subir `config/settings_data.json` cuando el usuario instale las apps.
 - Nada irreversible ni público sin OK: publicar, borrar o desactivar descuentos, quitar la contraseña. Si el clasificador de permisos lo bloquea, **no forzarlo**: guiar al usuario en el admin.
 - No se puede por API: nombre de la tienda, gestión automática de la política de privacidad. Los hace el usuario.
+- **Idioma del sitio y del checkout sí se puede por API** (`shopLocaleEnable` + `shopLocaleUpdate` publicado + `webPresenceUpdate` con `defaultLocale`; permisos `read_locales,write_locales,write_markets`). Ver manual §9.
 - Tabla completa de errores y soluciones: `references/manual.md` §9.
 
 ## Ofertas y descuentos que tienen que llegar al checkout
