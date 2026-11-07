@@ -33,6 +33,7 @@ Plantillas: `plantillas/tema/sections/eb-*.liquid` y `plantillas/politicas/*.htm
 ## Imágenes: API de Google (por defecto) o Higgsfield
 - **Google (Nano Banana Pro, `gemini-3-pro-image`, 2K):** ~US$ 0,134 por imagen, sin suscripción. El usuario crea la key en `https://aistudio.google.com/apikey`, activa la **facturación** (no hay uso gratis para Pro) y la guarda en `~/.config/gemini/api_key` con el comando del manual §5. **Nunca pedir la key por chat ni guardarla en un repo.** Probar con `generar_imagenes.py --listar`.
 - **Higgsfield** (solo si ya paga el plan): Configuración → Conectores → Agregar conector personalizado → `https://mcp.higgsfield.ai/mcp`. Mismos prompts, tandas de máx. 6, URLs directo a Shopify.
+- **Sin crédito en Google** (saldo prepago ≤ 0, la API rechaza el pedido): NO frenar. Diseñar portadas y logo con código (mockup de libro, título exacto en serif, ilustración vectorial plana con la paleta, exportado a PNG) y usar para el hero una foto gratuita de uso comercial (Unsplash/Pexels) con la paleta. Avisar en una línea. Con crédito, siempre la API.
 - La tienda **no lleva videos** (la referencia no tiene). Si algún día hacen falta (anuncios), la misma key de Google da acceso a Veo.
 
 ## Reglas que evitan errores ya vividos
