@@ -308,3 +308,11 @@ Primera tienda real: oct 2026 (6 ebooks de lettering, UK + US, ~US$ 1,34 en imá
 | `theme pull` corta con `EADDRNOTAVAIL` / `ENOTFOUND` | Red inestable con cientos de archivos | No hace falta el tema completo: alcanza con `locales/en.default.json`; armar con `armar_tema.py` y subir con `push --only` |
 | La tienda está en GBP (no USD) | El usuario la pasó a libras | Funciona igual: UK en GBP sin redondeo + US en USD con tasa manual 1.0 → mismo número en £ y $ |
 | Vista previa redirige a `/password` | Tienda con contraseña | Pasarle al usuario el link de vista previa: logueado en el admin la ve; Claude no ingresa la contraseña |
+| Gemini responde **402** "prepayment credits are depleted" | Saldo prepago en 0 | No frenar: portadas, ilustraciones y logo con código (SVG/HTML → PNG con Chrome headless `--screenshot --force-device-scale-factor=2`); avisar en una línea |
+| El usuario manda su propio prompt (otro idioma, otro mercado, otros precios) | Su pedido manda sobre las reglas por defecto | Seguirlo y anotar en la FICHA qué reglas del modo B no aplican |
+| Hay que entregar el PDF del ebook | El usuario pidió el libro | Escribir el contenido como datos (`.py`), maquetar en HTML y exportar con `Chrome --headless=new --print-to-pdf --no-pdf-header-footer`; en A5 partir cada receta en 2 páginas (ingredientes / preparación) y medir desbordes con un script antes de exportar |
+| La tienda NO tiene contraseña | Ya estaba abierta al público | Crear productos en **DRAFT** hasta tener contraseña o entrega digital configurada; pedirle al usuario que ponga la contraseña |
+| `onlineStorePreviewUrl` de un borrador muestra el tema publicado | Ese link ignora `preview_theme_id` | La plantilla nueva del producto solo se prueba con el producto activo (con contraseña o con el OK del usuario) |
+| Un bloque con producto en borrador sigue apareciendo | En Liquid el producto en borrador llega vacío (`blank`), no "no disponible" | Con "solo disponibles", exigir `producto != blank and producto.available` |
+| Nombre de sección con error `ValidSchemaName` | Máx. 25 caracteres | Prefijo corto (`SB · ...`) |
+| Order bump que duplica artículos | `/cart/add.js` suma cantidad en cada clic | Usar `/cart/update.js` con `{updates:{variante:1}}` (idempotente) |
