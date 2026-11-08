@@ -316,3 +316,10 @@ Primera tienda real: oct 2026 (6 ebooks de lettering, UK + US, ~US$ 1,34 en imá
 | Un bloque con producto en borrador sigue apareciendo | En Liquid el producto en borrador llega vacío (`blank`), no "no disponible" | Con "solo disponibles", exigir `producto != blank and producto.available` |
 | Nombre de sección con error `ValidSchemaName` | Máx. 25 caracteres | Prefijo corto (`SB · ...`) |
 | Order bump que duplica artículos | `/cart/add.js` suma cantidad en cada clic | Usar `/cart/update.js` con `{updates:{variante:1}}` (idempotente) |
+
+### Lección: verificar el PDF final como lo ve el cliente (2026-11-07)
+- **Nada de `box-shadow` ni colores con transparencia (`rgba`) en el PDF.** Chrome los exporta como imagen con máscara y el visor de iPhone/Mac (PDFKit) muestra un **recuadro gris** detrás del elemento. Usar bordes y colores sólidos.
+- Revisar el PDF **ya exportado**, no solo el HTML: con un script Swift de PDFKit (viene con macOS, no hay que instalar nada) se lee el texto de cada página y se comprueba que cada receta tenga título, todos los ingredientes y todos los pasos. Ojo: el lector puede desordenar las líneas, así que la comparación tiene que aceptar las palabras en otro orden.
+- Con el mismo PDFKit se pasan todas las páginas a miniaturas y se arma una hoja de contacto para revisarlas a ojo (páginas vacías, cortes, sellos raros), y se comprueba que los links del índice tengan destino.
+- En la versión para imprimir (carta) no partir las secciones como en celular: si no, quedan páginas "(continúa)" casi vacías.
+- Sin crédito para imágenes: los PDF se terminan igual, con tipografía e ilustraciones vectoriales. Los Créditos tienen que decir que las ilustraciones no son fotos, y la tienda no tiene que prometer fotos.
