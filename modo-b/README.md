@@ -323,3 +323,8 @@ Primera tienda real: oct 2026 (6 ebooks de lettering, UK + US, ~US$ 1,34 en imá
 - Con el mismo PDFKit se pasan todas las páginas a miniaturas y se arma una hoja de contacto para revisarlas a ojo (páginas vacías, cortes, sellos raros), y se comprueba que los links del índice tengan destino.
 - En la versión para imprimir (carta) no partir las secciones como en celular: si no, quedan páginas "(continúa)" casi vacías.
 - Sin crédito para imágenes: los PDF se terminan igual, con tipografía e ilustraciones vectoriales. Los Créditos tienen que decir que las ilustraciones no son fotos, y la tienda no tiene que prometer fotos.
+
+### Lección: fotos dentro del PDF (2026-11-08)
+- Para incrustar fotos, pasarle a Chrome **JPEG calidad 92** con los mismos píxeles, no PNG: el mismo libro bajó de 34 MB a 5,9 MB, y Chrome reutiliza la imagen en vez de repetirla. Shopify sí puede recibir el PNG.
+- Comprobar la incrustación listando los objetos de imagen del PDF con CoreGraphics (Swift), no solo mirándolo.
+- Si una foto no coincide exactamente con la receta, usar la más cercana y poner un pie que lo aclare. Revisar que no muestre algo que contradiga la promesa del libro.
