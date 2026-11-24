@@ -359,6 +359,11 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Login del CLI: `request to https://accounts.shopify.com/oauth/token failed ... ETIMEDOUT / socket disconnected` después de aprobar | Corte de red justo al final | Repetir `shopify theme list --store ...` (código nuevo) y pasar el link otra vez |
 | Destino con textos del tema y checkout en español ("PAGAR PEDIDO", "Total estimado") y el origen en inglés | Idioma principal del destino en español | **Se hace por API** (permisos `read_locales,write_locales,write_markets`): `shopLocaleEnable(locale:"en", marketWebPresenceIds:[ID])`, `shopLocaleUpdate(locale:"en", shopLocale:{published:true})` y `webPresenceUpdate(id:ID, input:{defaultLocale:"en", alternateLocales:[]})` (ID de `webPresences{nodes{id}}`). Tema, carrito, banner de cookies y checkout pasan a inglés al instante. `shopLocales` sigue marcando el español como `primary` (eso no tiene API), pero el cliente no lo ve |
 | El checkout dice "Esta tienda no puede aceptar pagos en este momento" | El destino no tiene proveedor de pagos | Lo configura el usuario (Settings → Payments) o su checkout externo |
+| La tienda nunca puede tener plan pago ni sacar la contraseña (Configuración → Plan dice solo "Custom plan · Tienda en desarrollo") | Es una **tienda de desarrollo**: Shopify no la convierte a producción | Revisar el tipo **antes** de armar nada (`shop{plan{displayName partnerDevelopment}}` y si en Configuración → General aparece la sección **"Transferir tienda"**). Si es "tienda para transferir a cliente", se transfiere y el cliente elige el plan (así el partner cobra 20 % del plan + 0,1 % de las ventas por 4 años). Si es de desarrollo, crear una "Client transfer store" en el Dev Dashboard y recargar con los scripts |
+| Después de transferir la tienda al cliente, `store execute` da "No stored app authentication found" | La transferencia borra el acceso de la app del CLI | Pedir un `store auth` nuevo (lo aprueba el colaborador o el dueño) |
+| `themeCreate` deja el tema sin `header-group.json` (no hay cabecera) y no avisa | `themeCreate` descarta en silencio los JSON inválidos (ej. `padding_top: 14`, que no es múltiplo de 4) | Después de crear, comparar la lista de archivos del tema con la local y subir los que faltan con `themeFilesUpsert` (`scripts/upsert.py`), que sí muestra el error |
+| Nombre de la tienda, zona horaria, métodos de pago manuales, teléfono obligatorio en el checkout | No existen en la Admin API (ni con todos los permisos) | Hacerlo en el panel (o desde el navegador con la sesión del usuario). Configuración de apps como Releasit: solo desde la app |
+| `git add/commit` se cuelga en `clientes/` y deja `index.lock` | Disco lleno: iCloud deja los archivos "solo en la nube" apenas se guardan | Clonar el repo fuera de iCloud (`git clone --depth 1 --filter=blob:none --sparse` + `sparse-checkout set <carpeta>`), copiar ahí y hacer push. Avisar al usuario que libere espacio |
 
 ---
 
@@ -435,6 +440,13 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 - Misma marca, otra empresa legal: un script de reemplazos cambió empresa, dirección, teléfono y email en footer, ficha de producto, páginas y políticas.
 - El origen cargaba un checkout externo en `theme.liquid`: se sacó del clon a pedido del usuario. Las ofertas siguieron andando porque usan handles.
 - La comparación dio NINGUNA (el título de la colección `frontpage` venía en el idioma del destino). Publicado con OK y probado hasta el checkout. Pendientes del usuario: pagos e idioma principal.
+
+### Caso 7: tienda nueva de perfumes y decants (Sudamérica), sin acceso a las referencias
+- Referencias que eran Shopify: se leyó su `/products.json` público (precios, variantes 3/5/10 ml, combos). Otra en WooCommerce: `/wp-json/wc/store/v1/products?search=`.
+- Catálogo del cliente desde fotos de Drive; combos de 4 decants con 15 % menos y precio tachado; colecciones automáticas por etiqueta; políticas según la ley local; idioma por API.
+- Tema Dawn limpio subido con `themeCreate` (zip por `stagedUploadsCreate`) y retocado con `themeFilesUpsert` (`scripts/upsert.py`): no hace falta login del CLI de temas. Ojo: `themeCreate` descarta en silencio los JSON inválidos.
+- La tienda era "para transferir a cliente": se transfirió al dueño, que eligió el plan. El partner cobra comisión solo si el cliente activa el plan por la transferencia.
+- Pedidos por formulario (app Releasit COD) con redirección a WhatsApp; se sacó el carrito para que la compra sea directa desde la ficha.
 
 ## Estructura del repo
 ```
