@@ -342,6 +342,9 @@ Confirmar con `theme list` (rol `live`) y con `Shopify.theme = {..."role":"main"
 | Productos duplicados con handle `-1`, `-11`… | Se reintentó un bulk que dio `ETIMEDOUT` pero ya corría en Shopify | Ver `currentBulkOperation` antes de reintentar. Si ya pasó: listar los que no están en el origen y borrarlos (bulk `productDelete`, con OK) |
 | `theme push --json` "sin errores" pero el cambio no aparece | La salida trae `theme.errors` (ej. `name` del schema de una sección con más de 25 caracteres) y ese archivo no se subió | Leer siempre `theme.errors` del JSON; verificar con `theme pull` + `diff -rq` |
 | `Access denied for markets field` | Falta `read_markets` en `store auth` | Agregarlo a los permisos desde el principio |
+| `shopify theme pull` / `theme push` se queda colgado sin mostrar nada (minutos) | Sesión de temas del CLI trabada | Hacerlo **por API** con `store auth` (`read_themes`/`write_themes`), sin login de temas: `scripts/bajar_tema_api.py` (bajar), `scripts/crear_tema_api.py` (zip → staged upload → `themeCreate` sin publicar), `scripts/subir_archivos_tema.py` (`themeFilesUpsert`). Publicar con `themePublish` (con OK) |
+| Productos dan **404 en un país** aunque `/products.json` los lista y `publishedInContext(country)` da `false` | Ese mercado está en **Shopify Managed Markets** (`adaptivePricingEnabled`, DDP; el "Rest of World" suele tener handle `managed-market`): cada producto nuevo pasa por revisión | No se arregla con catálogos de mercado ni web presence (probado). Avisar al usuario: esperar la aprobación o sacar el mercado de Managed Markets en el admin. Revisarlo al empezar (`market { priceInclusions }`) |
+| En zsh, `X='shopify store execute ...'; $X -q ...` no hace nada | zsh no separa variables en palabras | Escribir el comando completo |
 
 ---
 
