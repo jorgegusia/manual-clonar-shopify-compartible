@@ -314,6 +314,11 @@ de `__opsCheckoutBoot`, y verificar que el botón del carrito lleve a `/checkout
 **Tienda en Shop (canal "Shop" ya instalado).** Todo por API salvo la marca:
 1. Publicar en la publicación "Shop" los mismos productos y colecciones que en la tienda online (`publishablePublish`, bulk
    con `bulk_mutation.py`). La publicación se busca con `publications { id name }`.
+   **No publicar en Shop** (Shop los marca como "no elegibles" o "prohibidos" y frenan la tienda): productos a **$0** (regalos
+   que el carrito agrega solo, tipo "Free gift"), **tarjetas de regalo** y **seguros/protección de envío** (ej. "Upcart -
+   Shipping Protection"). Siguen en la tienda online. Si ya están: `publishableUnpublish` solo de la publicación "Shop".
+   Ver el aviso de Shop por producto: bulk con `feedback { summary details { app { title } messages { message } } }`
+   (no todos los marcados traen aviso: revisar también por tipo y precio).
 2. **Categoría de Shopify** en cada producto (`productUpdate(product:{id, category})`, bulk). Buscar IDs con
    `taxonomy { categories(search:"...") }`. **La búsqueda responde en el idioma del admin** (con admin en español, buscar
    "juegos de cartas", "coleccionables"…). TCG: cartas/cajas/sobres/mazos/gradeadas → `ae-2-2-3-3` (cromos coleccionables no
