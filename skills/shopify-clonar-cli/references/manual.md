@@ -296,6 +296,36 @@ El clon trae textos, emails y datos legales de la tienda vieja. Hay que buscarlo
 
 ---
 
+### 7.x Checkout externo heredado, canal Shop, marca y checkout (aprendido 2026-11-25)
+**Checkout externo heredado.** El tema del origen puede traer scripts de checkout externo (`uruscrm.com/checkout.js`, bloque
+`__opsCheckoutBoot` / `stripe-ops-intelligence`, `primescale`) **con las claves de la tienda de origen**: en el destino los pagos
+irían a la cuenta del origen. Buscarlos siempre (`grep -nE "uruscrm|stripe-ops|primescale|__opsCheckout" layout/theme.liquid`),
+avisar al usuario y preguntar. Si quiere el checkout nativo de Shopify: borrar el `<script src=...uruscrm...>` y el bloque `<script>`
+de `__opsCheckoutBoot`, y verificar que el botón del carrito lleve a `/checkouts/...` de Shopify.
+
+**Tienda en Shop (canal "Shop" ya instalado).** Todo por API salvo la marca:
+1. Publicar en la publicación "Shop" los mismos productos y colecciones que en la tienda online (`publishablePublish`, bulk
+   con `bulk_mutation.py`). La publicación se busca con `publications { id name }`.
+2. **Categoría de Shopify** en cada producto (`productUpdate(product:{id, category})`, bulk). Buscar IDs con
+   `taxonomy { categories(search:"...") }`. **La búsqueda responde en el idioma del admin** (con admin en español, buscar
+   "juegos de cartas", "coleccionables"…). TCG: cartas/cajas/sobres/mazos/gradeadas → `ae-2-2-3-3` (cromos coleccionables no
+   deportivos); fundas/carpetas/tapetes/acrílicos → `tg-2-6` (accesorios para juegos de cartas). Gift cards sin categoría.
+3. **Políticas** con los datos del DESTINO (`shopPolicyUpdate`): REFUND_POLICY, SHIPPING_POLICY, CONTACT_INFORMATION,
+   TERMS_OF_SERVICE (la de privacidad suele ser automática). Sacar plazos y condiciones de las páginas de la tienda; email,
+   dirección y teléfono de `shop { contactEmail billingAddress {...} }`. Guardarlas en `politicas/*.html`.
+4. **Imágenes de marca:** `python3 scripts/armar_marca_shop.py --logo ... --icono ... --productos ... --salida marca-shop/`
+   (logo sobre el color de marca, logo para checkout con lo blanco pasado a oscuro, logo cuadrado, portada 1920×1080) y
+   subirlas a Files con `upload_videos.py ... IMAGE`.
+5. **Lo que hace el usuario (sin API):**
+   - **Nombre de la tienda** (Shop, checkout y la política de privacidad lo muestran): `admin.shopify.com/store/<tienda>/settings/general`.
+   - **Configuración → Marca** (logo, logo cuadrado, portada, colores, eslogan ≤80, descripción breve ≤150):
+     `.../settings/brand`, eligiendo las imágenes que ya están en Archivos. Darle los textos y colores listos para pegar.
+   - **Logo del checkout:** `checkoutBrandingUpsert` (permisos `read/write_checkout_branding_settings`) solo funciona en
+     **Plus o tienda de desarrollo**; en Basic da *Access denied… must be on a Plus plan*. Ahí: Configuración → Checkout →
+     Personalizar → Logotipo, elegir `logo-checkout.png` de Archivos. No pedir ese permiso en tiendas Basic.
+   - Revisar `.../apps/shop` por requisitos pendientes. La aparición en la app Shop la revisa Shopify (días).
+6. Verificar: `/policies/<tipo>` en inglés, el checkout con el nombre nuevo y Shop Pay en el pago exprés.
+
 ## 8. Publicar (solo con OK del usuario)
 ```bash
 shopify theme publish --store DESTINO.myshopify.com --theme ID --force
