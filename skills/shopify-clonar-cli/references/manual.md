@@ -331,6 +331,26 @@ de `__opsCheckoutBoot`, y verificar que el botón del carrito lleve a `/checkout
    - Revisar `.../apps/shop` por requisitos pendientes. La aparición en la app Shop la revisa Shopify (días).
 6. Verificar: `/policies/<tipo>` en inglés, el checkout con el nombre nuevo y Shop Pay en el pago exprés.
 
+### 7.y Segundo mercado con el MISMO NÚMERO en otra moneda (ej. Reino Unido en libras) (aprendido 2026-11-25)
+Pedido típico: "$49.99 en EE.UU. → £49.99 en Reino Unido, sin conversión automática" y "$25 de descuento en EE.UU., £25 en UK".
+1. **Precios fijos:** `python3 -I scripts/precios_fijos_mercado.py TIENDA --mercado <id> --moneda GBP` (crea catálogo + lista de
+   precios y carga price/compareAt de todas las variantes). Con **productos nuevos o cambios de precio, volver a correrlo** con
+   `--lista <id>`: si no, esas variantes se convierten con la cotización (+ IVA y aranceles en Managed Markets).
+2. **Managed Markets** (`priceInclusions` DDP / adaptive pricing): acepta listas de precios fijos, pero **no** tipo de cambio manual
+   (`ADAPTIVE_PRICING_REQUIRES_LOCAL_CURRENCIES`). Los productos nuevos tardan en ser aprobados para el país y los de **$0 (regalos)
+   nunca** quedan disponibles: en el tema `all_products['regalo']` llega sin variantes ni imagen.
+3. **Códigos por mercado:** el código existente → `context:{markets:{add:[mercado EE.UU.]}}`. Uno nuevo para UK (ej. `WELCOME25UK`)
+   con `context` del mercado UK. El monto se guarda en USD y Shopify lo convierte con su cotización: medir en un carrito de UK
+   (`cart.js` → `cart_level_discount_applications[].total_allocated_amount`) y ajustar monto y mínimo para que den £25.00 / £100
+   exactos (ej. 1 USD = 0,7713 GBP → $32.41 y mínimo $129.64). La cotización se mueve: revisarlo de vez en cuando.
+4. **Tema:** buscar `shop.currency`, `currency !==`, "USD only" en snippets: carritos de temas clonados suelen **bloquear el pago en
+   otra moneda** ("This bag checks out in USD only"). Permitir cualquier moneda; textos de envío/topes por país con
+   `localization.country.iso_code`; formatear con la moneda del visitante (`Shopify.currency.active`). Proteger los `image_url` de
+   productos que pueden no estar en el mercado (`{% if x.variants.first.id and x.featured_image %}`) o el JS del carrito se rompe.
+   Ocultar fuera de EE.UU. los avisos con "$" o "US shipping". El pop-up de email cambia de código/moneda por país (skill shopify-oferta-popup).
+5. **Probar como cliente de cada país** (POST `/localization` con `country_code`): pop-up, carrito (botón habilitado, moneda, aviso de
+   mínimo, descuento), checkout (`/checkouts/.../en-gb` con £ y el código) y que el código de un país NO funcione en el otro.
+
 ## 8. Publicar (solo con OK del usuario)
 ```bash
 shopify theme publish --store DESTINO.myshopify.com --theme ID --force

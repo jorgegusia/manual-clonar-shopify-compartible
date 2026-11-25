@@ -60,6 +60,8 @@ Ficha de datos para completar con el usuario: `references/plantilla-datos-tienda
 - **Tienda en Shop:** publicar productos y colecciones en "Shop", poner la categoría de Shopify (la búsqueda de taxonomía va en el
   idioma del admin), cargar las políticas con datos del destino y armar la marca con `scripts/armar_marca_shop.py` (manual §7.x).
   Configuración → Marca y el logo del checkout en plan Basic los carga el usuario (no hay API; `checkoutBrandingUpsert` solo Plus/dev).
+- **Segundo mercado con el mismo número en otra moneda** (UK en £): `scripts/precios_fijos_mercado.py`, código propio por mercado
+  ajustado a la cotización, y revisar que el carrito del tema no bloquee otras monedas (manual §7.y).
 - **Idioma del sitio y del checkout sí se puede por API** (`shopLocaleEnable` + `shopLocaleUpdate` publicado + `webPresenceUpdate` con `defaultLocale`; permisos `read_locales,write_locales,write_markets`). Ver manual §9.
 - Tabla completa de errores y soluciones: `references/manual.md` §9.
 
