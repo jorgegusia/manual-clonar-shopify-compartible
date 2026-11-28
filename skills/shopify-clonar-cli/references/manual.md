@@ -350,6 +350,12 @@ Pedido típico: "$49.99 en EE.UU. → £49.99 en Reino Unido, sin conversión au
    Ocultar fuera de EE.UU. los avisos con "$" o "US shipping". El pop-up de email cambia de código/moneda por país (skill shopify-oferta-popup).
 5. **Probar como cliente de cada país** (POST `/localization` con `country_code`): pop-up, carrito (botón habilitado, moneda, aviso de
    mínimo, descuento), checkout (`/checkouts/.../en-gb` con £ y el código) y que el código de un país NO funcione en el otro.
+6. **Pedidos del mercado con Managed Markets** (aprendido 2026-11-28): llegan **"Autorizado" + "En espera"** y por API dan
+   `capturable: false` — no se pueden cobrar a mano. Es normal: Managed Markets revisa fraude/aranceles (≈5 min) y, en **tiendas nuevas,
+   los deja esperando que el dueño los ACEPTE en el admin** (abrir el pedido → aceptar / "Release hold"); tiene **7 días** o se
+   cancelan y se libera la tarjeta. Después se cobran solos (si la captura es automática: verlo en los pedidos de EE.UU., que
+   tienen CAPTURE enseguida) y se envían **comprando la etiqueta de Managed Markets en el admin** (no con transportista propio).
+   Ver pedidos: `read_orders` (`risk { recommendation assessments { riskLevel facts } }`, `transactions`).
 
 ## 8. Publicar (solo con OK del usuario)
 ```bash
